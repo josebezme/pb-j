@@ -37,44 +37,39 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 			output = new PrintWriter( new OutputStreamWriter(socket.getOutputStream() ));
 			BufferedReader input = new BufferedReader(new InputStreamReader( socket.getInputStream() ));
 			
-			try {
-				output.println(Commands.Master.HI);
-				output.flush();
-				
-				String line = input.readLine();
-				
-				if(Commands.Slave.HI_BACK.equals(line)) {
-					logger.log("Got succesful hi from slave.");
-				} else {
-					logger.log("Hi failed, got:" + line);
-				}
-				
-				while((line = input.readLine()) != null) {
-					if(Commands.CLOSE.equals(line)) {
-						logger.log("Slave sent close command.");
-						break;
-					} else if(Commands.Slave.REPORT.equals(line)) {
-						logger.log("Slave sending report.");
-						String data = "";
-						
-						line = input.readLine();
-						while(!Commands.Slave.REPORT_END.equals(line)) {
-							data += line;
-							line = input.readLine();
-						}
-						
-						logger.log("Got data from slave: " + data);
-					} else {
-						logger.log("Got invalid command: " + line);
-					}
-					// Reading line
-				}
-				
-				
-			} catch(ClosedByInterruptException e) {
-				// Find out what we're suppose to be doing.
+			output.println(Commands.Master.HI);
+			output.flush();
+			
+			String line = input.readLine();
+			
+			if(Commands.Slave.HI_BACK.equals(line)) {
+				logger.log("Got succesful hi from slave.");
+			} else {
+				logger.log("Hi failed, got:" + line);
 			}
 			
+			// Read from slave.
+			while((line = input.readLine()) != null) {
+				if(Commands.CLOSE.equals(line)) {
+					logger.log("Slave sent close command.");
+					break;
+				} else if(Commands.Slave.REPORT.equals(line)) {
+					logger.log("Slave sending report.");
+					String data = "";
+					
+					line = input.readLine();
+					while(!Commands.Slave.REPORT_END.equals(line)) {
+						data += line;
+						line = input.readLine();
+					}
+					
+					logger.log("Got data from slave: " + data);
+				} else {
+					logger.log("Got invalid command: " + line);
+				}
+				// Reading line
+			}
+				
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
