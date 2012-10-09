@@ -26,13 +26,18 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 	
 	public SlaveHandler(Socket s) {
 		this.socket = s;
-		
-		name = s.getInetAddress().getHostAddress() + ":" + Thread.currentThread().getId();
 	}
 
 	@Override
 	public void run() {
 		try {
+			name = socket.getInetAddress().getHostAddress() + ":" + Thread.currentThread().getId();
+			
+			synchronized(this) {
+				this.notifyAll();
+			}
+			
+			
 			logger.log("Running slaveHandler for slave: " + getName());
 			output = new PrintWriter( new OutputStreamWriter(socket.getOutputStream() ));
 			BufferedReader input = new BufferedReader(new InputStreamReader( socket.getInputStream() ));

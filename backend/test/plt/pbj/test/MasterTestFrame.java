@@ -6,7 +6,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractListModel;
 import javax.swing.BoxLayout;
@@ -121,12 +123,18 @@ public class MasterTestFrame extends JFrame implements ActionListener, MasterObs
 			
 		} else if(event.getSource() == runJobCount) {
 			System.out.println("Sending job to master.");
-			Job job = new Job();
-			job.className = "plt.pbj.test.sample.CountIntegers";
-			job.method = "countIntegers";
-			job.data = "[1,2]";
 			
-			master.spreadJob(job);
+			Map<String, Job> jobs = new HashMap<String, Job>();
+			
+			for(SlaveHandler handler : master.getSlaveHandlers()) {
+				Job job = new Job();
+				job.className = "plt.pbj.test.sample.CountIntegers";
+				job.method = "countIntegers";
+				job.data = "[1,2]";
+				jobs.put(handler.getName(), job);
+			}
+			
+			master.spreadJobs(jobs);
 		}
 	}
 

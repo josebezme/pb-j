@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import plt.pbj.util.DefaultLogger;
@@ -42,8 +43,18 @@ public class Master implements Runnable {
 				
 				logger.log("Adding slave to pool...");
 				SlaveHandler slaveRunner = new SlaveHandler(slaveSocket);
-				new Thread(slaveRunner).start();
-				slaveHandlers.add(slaveRunner);
+				
+				synchronized (slaveRunner) {
+					
+					new Thread(slaveRunner).start();
+					slaveHandlers.add(slaveRunner);
+					
+					try {
+						slaveRunner.wait();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
 				
 				notifySlaveChange();
 			}
@@ -97,9 +108,16 @@ public class Master implements Runnable {
 		return slaveHandlers;
 	}
 
-	public void spreadJob(Job job) {
+	/**
+	 * 
+	 * @param jobs <Slave Name, Job>
+	 */
+	public void spreadJobs(Map<String, Job> jobs) {
+		Job job = null;
 		for(SlaveHandler handler : slaveHandlers) {
-			handler.sendJob(job);
+			if((job = jobs.get(handler.getName())) != null) {
+				handler.sendJob(job);
+			}
 		}
 	}
 }
