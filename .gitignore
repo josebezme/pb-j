@@ -1,6 +1,8 @@
 *.class
 
-compiler/scanner.ml
+scanner.ml
+parser.mli
+parser.ml
 
 # Package Files #
 *.war
