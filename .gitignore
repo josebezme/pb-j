@@ -1,5 +1,7 @@
 *.class
 
+compiler/scanner.ml
+
 # Package Files #
 *.war
 *.ear
