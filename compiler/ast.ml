@@ -1,5 +1,5 @@
 type expr =
-    Id of string
+    Variable of data_type
   | Assign of string * expr
   | Noexpr
 
@@ -15,4 +15,8 @@ type func_decl = {
     body : stmt list;
   }
 
-type program = string list * func_decl list
+type data_type =
+    Map of string
+  | Array of string
+
+type program = data_type list * func_decl list
