@@ -4,6 +4,10 @@ scanner.ml
 parser.mli
 parser.ml
 
+*.cmi
+*.cmo
+microc/microc
+
 # Package Files #
 *.war
 *.ear
