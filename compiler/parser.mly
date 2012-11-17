@@ -1,9 +1,9 @@
-(* parser.mly *)
 %{ open Ast %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
 %token MAP ARRAY
-%token STRING
+%token PRINT
+%token <string> STRING
 %token <string> ID
 %token EOF
 
@@ -33,6 +33,23 @@ formal_list:
   vdecl                     { [$1] }
   | formal_list COMMA vdecl { $3 :: $1 }
 
+vdecl_list:
+    /* nothing */    { [] }
+  | vdecl_list vdecl { $2 :: $1 }
+
 vdecl:
   MAP ID { Map($2) }
   | ARRAY ID { Array($2) } 
+
+stmt_list:
+    /* nothing */  { [] }
+  | stmt_list stmt { $2 :: $1 }
+
+stmt:
+  PRINT LPAREN string_expr RPAREN SEMI { Print($3) }
+
+string_expr:
+  STRING { StringLiteral($1) }
+
+
+
