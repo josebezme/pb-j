@@ -27,17 +27,19 @@ let rec string_of_stmt = function
       "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
   | Print(str) -> "PRINT (" ^ string_of_str_expr str ^ ");\n"
 
-let rec string_of_vdecl = function
-  String(s) -> "STRING " ^ s ^ ";\n"
-  | Map(s) -> "MAP " ^ s ^ ";\n"
-  | Array(s) -> "ARRAY " ^ s ^ ";\n"
+let rec string_of_data_type = function
+  String(s) -> "STRING " ^ s
+  | Map(s) -> "MAP " ^ s
+  | Array(s) -> "ARRAY " ^ s
 
 let string_of_fdecl fdecl =
-  "FUNCTION " ^ fdecl.fname ^ "(" ^ String.concat "" (List.map string_of_vdecl fdecl.formals) ^ ")\n{\n" ^
-  String.concat "" (List.map string_of_vdecl fdecl.locals) ^
+  "FUNCTION " ^ fdecl.fname ^ "(" ^ 
+    String.concat "," (List.map string_of_data_type fdecl.formals) ^ 
+    ")\n{\n" ^
+  String.concat ";\n" (List.map string_of_data_type fdecl.locals) ^ "\n" ^
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
 
 let string_of_program (vars, funcs) =
-  "Vars: \n" ^ String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^
+  "Vars: \n" ^ String.concat ";\n" (List.map string_of_data_type vars) ^ "\n" ^
   "Funcs: \n" ^ String.concat "\n" (List.map string_of_fdecl funcs)
