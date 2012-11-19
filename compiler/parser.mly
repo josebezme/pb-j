@@ -4,7 +4,7 @@
 %token MAP ARRAY
 %token COMMENT
 %token PRINT
-%token <string> STRING
+%token <string> STRING_LITERAL
 %token <string> ID
 %token EOF
 
@@ -50,7 +50,7 @@ stmt:
   PRINT LPAREN string_expr RPAREN SEMI { Print($3) }
 
 string_expr:
-  STRING { StringLiteral($1) }
+  STRING_LITERAL { StringLiteral($1) }
 
 
 

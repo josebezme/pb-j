@@ -12,7 +12,7 @@ rule token = parse
 | "map"        { MAP }
 | "array"      { ARRAY }
 | "print"      { PRINT }
-| '"' ([^'"']+ as s) '"'   { STRING(s) }
+| '"' ([^'"']+ as s) '"'   { STRING_LITERAL(s) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | eof      { EOF }
 | _  as char { raise (Failure("illegal character " ^ Char.escaped char)) }
