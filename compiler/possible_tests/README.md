@@ -14,11 +14,13 @@
  * Maps
 * Expressions
  * Operators
-  * Arithmatic (needs numeric types)
+  * Arithmetic (needs numeric types)
   * Comparison (needs all types)
   * Inequalitied (needs numeric types)
   * Logical operators (needs boolean types)
   * String concat (needs string type)
+ * Assignment
+ * Func Call
 * Blocks & Statments
  * ~~Blocks~~
  * Spread (should do last)
