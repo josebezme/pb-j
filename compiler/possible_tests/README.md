@@ -4,28 +4,28 @@
 > Going off of the outline of the LRM we have the following categories:
 
 * Types
- * Primitive Types
- * Collection Types
+    * Primitive Types
+    * Collection Types
 * Lexical
- * ~~Comments~~
- * Operators
- * Literal Types
- * Arrays
- * Maps
+    * ~~Comments~~
+    * Operators
+    * Literal Types
+    * Arrays
+    * Maps
 * Expressions
- * Operators
-  * Arithmetic (needs numeric types)
-  * Comparison (needs all types)
-  * Inequalitied (needs numeric types)
-  * Logical operators (needs boolean types)
-  * String concat (needs string type)
- * Assignment
- * Func Call
+    * Operators
+        * Arithmetic (needs numeric types)
+        * Comparison (needs all types)
+        * Inequalitied (needs numeric types)
+        * Logical operators (needs boolean types)
+        * String concat (needs string type)
+    * Assignment
+    * Func Call
 * Blocks & Statments
- * ~~Blocks~~
- * Spread (should do last)
- * Jam (Should do last)
- * Conditional (needs boolean expr)
- * While (needs boolean expr)
- * For (needs boolean expr)
- * ~~Print~~
+    * ~~Blocks~~
+    * Spread (should do last)
+    * Jam (Should do last)
+    * Conditional (needs boolean expr)
+    * While (needs boolean expr)
+    * For (needs boolean expr)
+    * ~~Print~~
