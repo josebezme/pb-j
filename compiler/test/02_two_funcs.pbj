@@ -1,0 +1,7 @@
+master(map slaves, array args) {
+	print("Hello");
+}
+
+doSomething() {
+	print("Did something");
+}
