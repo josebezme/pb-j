@@ -3,7 +3,7 @@
 (* 3. Run parser on expr for parse tree *)
 (* 4. Compile parse tree into java (for now just print out) *)
 
-type action = Ast 
+type action = Ast | Compile
  
 let read_file filename = 
 let lines = ref [] in
@@ -18,7 +18,7 @@ with End_of_file ->
 
 let _ =
   let action = if Array.length Sys.argv > 2 then
-      List.assoc Sys.argv.(1) [ ("-a", Ast)]
+      List.assoc Sys.argv.(1) [ ("-a", Ast); ("-c", Compile)]
     else  Ast in
   let src_file = if Array.length Sys.argv > 2 then
   	  Sys.argv.(2)
@@ -28,3 +28,6 @@ let _ =
   match action with
     Ast -> let listing = Ast.string_of_program program
            in print_string listing
+    | Compile ->
+      let output = Compile.translate program
+        in print_string output
