@@ -1,4 +1,4 @@
-## Possible Types
+## Possible Tests
 
 > Trying to figure out possible tests and what order we need to do them in.
 > Going off of the outline of the LRM we have the following categories:
