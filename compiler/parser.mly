@@ -2,6 +2,7 @@
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
 %token MAP ARRAY
+%token COMMENT
 %token PRINT
 %token <string> STRING
 %token <string> ID

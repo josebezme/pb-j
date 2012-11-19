@@ -1,0 +1,7 @@
+master(map slaves, array args) {
+	... Comment
+	print("Hello"); ... Comment here
+	.... Comment there
+}
+
+... Even out here.
