@@ -5,7 +5,14 @@
 
 * Types
     * Primitive Types
+        * long (Fred) 
+        * double (Fred) 
+        * ~~string~~
+        * boolean (Rotem) 
+        * null (Robert) 
     * Collection Types
+        * Map (Jose)
+        * Array (Robert) 
 * Lexical
     * ~~Comments~~
     * Operators
@@ -15,7 +22,7 @@
     * Literal Types
         * Literal primtives
     * Arrays
-    * Maps
+    * Maps (Jose)
 * Expressions
     * Operators
         * Arithmetic (needs numeric types)
