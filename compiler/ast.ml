@@ -4,13 +4,15 @@ type data_type =
   | Array of string
 
 type expr = 
-  Assign of data_type * expr
+  Assign of string * expr
   | Id of string
   | StringLiteral of string
 
 type stmt =
     Block of stmt list
   | Print of expr
+  | Declare of data_type
+  | DeclareAssign of data_type * expr
   | Expr of expr
 
 type func_decl = {
@@ -27,7 +29,7 @@ let rec string_of_data_type = function
   | Array(s) -> "ARRAY " ^ s
 
 let rec string_of_expr = function
-  Assign(dt, e) -> "ASSIGN " ^ string_of_data_type dt  ^ " TO " ^ string_of_expr e ^ "\n"
+  Assign(s, e) -> "ASSIGN " ^ s ^ " TO " ^ string_of_expr e ^ "\n"
   | StringLiteral(s) -> "\"" ^ s ^ "\""
   | Id(s) -> "ID:" ^ s
 
@@ -36,6 +38,9 @@ let rec string_of_stmt = function
       "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
   | Print(str) -> "PRINT (" ^ string_of_expr str ^ ");\n"
   | Expr(e) -> "EXPR: " ^ string_of_expr e ^ ";\n"
+  | Declare(dt) -> "DECLARE: " ^ string_of_data_type dt ^ ";\n"
+  | DeclareAssign(dt, e) -> "DECLARE: " ^ string_of_data_type dt ^ 
+      " AND ASSIGN: " ^ string_of_expr e ^ ";\n"
 
 let string_of_fdecl fdecl =
   "FUNCTION " ^ fdecl.fname ^ "(" ^ 

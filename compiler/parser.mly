@@ -40,7 +40,7 @@ formal_list:
   | formal_list COMMA vdecl { $3 :: $1 }
 
 expr:
-  vdecl ASSIGN expr { Assign($1,$3) }
+  ID ASSIGN expr { Assign($1,$3) }
   | STRING_LITERAL { StringLiteral($1) }
   | ID { Id($1) }
 
@@ -54,8 +54,10 @@ stmt_list:
   | stmt_list stmt { $2 :: $1 }
 
 stmt:
-  expr SEMI { Expr($1) }
+  vdecl SEMI { Declare($1) }
+  | vdecl ASSIGN expr SEMI { DeclareAssign($1, $3) }
   | PRINT LPAREN expr RPAREN SEMI { Print($3) }
+  | expr SEMI { Expr($1) }
 
 
 
