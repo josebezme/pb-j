@@ -9,7 +9,11 @@
 * Lexical
     * ~~Comments~~
     * Operators
+        * PBJ Op
+        * Assignment operator
+        * Return
     * Literal Types
+        * Literal primtives
     * Arrays
     * Maps
 * Expressions
