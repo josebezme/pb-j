@@ -4,17 +4,6 @@
 (* 4. Compile parse tree into java (for now just print out) *)
 
 type action = Ast | Compile
- 
-let read_file filename = 
-let lines = ref [] in
-let chan = open_in filename in
-try
-  while true; do
-    lines := input_line chan :: !lines
-  done; []
-with End_of_file ->
-  close_in chan;
-  List.rev !lines ;;
 
 let _ =
   let action = if Array.length Sys.argv > 2 then

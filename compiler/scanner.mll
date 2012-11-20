@@ -1,5 +1,6 @@
 { open Parser }
 
+
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf }
 | "..."        { comment lexbuf }
@@ -12,6 +13,8 @@ rule token = parse
 | "map"        { MAP }
 | "array"      { ARRAY }
 | "print"      { PRINT }
+| "string"     { STRING }
+| "<-"         { ASSIGN }
 | '"' ([^'"']+ as s) '"'   { STRING_LITERAL(s) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | eof      { EOF }
