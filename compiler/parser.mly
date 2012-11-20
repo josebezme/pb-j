@@ -55,6 +55,7 @@ stmt_list:
 
 stmt:
   vdecl SEMI { Declare($1) }
+  | LBRACE stmt_list RBRACE { Block(List.rev $2) }
   | vdecl ASSIGN expr SEMI { DeclareAssign($1, $3) }
   | PRINT LPAREN expr RPAREN SEMI { Print($3) }
   | expr SEMI { Expr($1) }

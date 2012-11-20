@@ -33,8 +33,8 @@ let translate (globals, functions) =
     in
     let rec stmt (output, locals) = function
       Block(stmts) -> 
-        let l = List.fold_left stmt (output, locals) stmts
-        in ("{\n" ^ (fst l) ^ "\n}", locals)
+        let l = List.fold_left stmt ("", locals) stmts 
+        in (output ^ "{\n" ^ (fst l) ^ "\n}\n", locals)
       | Print(s) -> (output ^ "System.out.println(" ^ string_expr locals s ^ ");\n", locals)
       | Expr(e) -> (output ^ string_expr locals e ^ ";\n", locals)
       | Declare(dt) -> 
