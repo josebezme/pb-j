@@ -9,6 +9,7 @@ rule token = parse
 | '{'          { LBRACE }
 | '}'          { RBRACE }
 | ';'          { SEMI }
+| ':'          { COLON }
 | ','          { COMMA }
 | "map"        { MAP }
 | "array"      { ARRAY }

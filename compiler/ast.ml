@@ -3,10 +3,14 @@ type data_type =
   | Map of string
   | Array of string
 
+type literal = 
+  | StringLiteral of string
+
 type expr = 
   Assign of string * expr
   | Id of string
-  | StringLiteral of string
+  | Literal of literal
+  | MapLiteral of (literal * expr) list
 
 type stmt =
     Block of stmt list
@@ -28,10 +32,15 @@ let rec string_of_data_type = function
   | Map(s) -> "MAP " ^ s
   | Array(s) -> "ARRAY " ^ s
 
+let rec string_of_literal = function
+  StringLiteral(s) -> "\"" ^ s ^ "\""
+
 let rec string_of_expr = function
-  Assign(s, e) -> "ASSIGN " ^ s ^ " TO " ^ string_of_expr e ^ "\n"
-  | StringLiteral(s) -> "\"" ^ s ^ "\""
+  Assign(s, e) -> "ASSIGN " ^ s ^ " TO " ^ string_of_expr e
+  | Literal(l) -> string_of_literal l
   | Id(s) -> "ID:" ^ s
+  | MapLiteral(ml) -> "MAP{" ^ String.concat "," 
+        (List.map (fun (a,b) -> string_of_literal a ^ ":" ^ string_of_expr b) ml) ^ "}"
 
 let rec string_of_stmt = function
     Block(stmts) ->

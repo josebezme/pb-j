@@ -22,9 +22,14 @@ let translate (globals, functions) =
       String(id) -> "String " ^ id
       | Map(id) -> "Map<Object, Object> " ^ id
       | Array(id) -> "List<Object> " ^ id
-    in let rec string_expr locals = function
+    in let rec string_literal = function
       StringLiteral(s) -> "\"" ^ s ^ "\""
+    in let rec string_expr locals = function
+      | Literal(l) -> string_literal l
       | Assign(s, e) -> s ^ " = " ^ string_expr locals e
+      | MapLiteral(ml) -> "new Object[]{" ^
+          String.concat "," (List.map (fun (d,e) -> string_literal d ^ "," ^ string_expr locals e) ml) ^ 
+          "}"
       | Id(s) -> 
         if(List.exists (fun n -> n = s) locals) then
           s
