@@ -14,9 +14,13 @@ let translate (globals, functions) =
       | Map(id) -> id
       | Array(id) -> id
     in
+    let into_map str = 
+      "plt.pbj.util.MapUtil.toMap(" ^ str ^ ")"
+    in
     let rec default_init = function
       String(id) -> "\"\""
-      | _ -> raise (Failure ("Not implemented yet."))
+      | Map(id) -> "new HashMap<Object, Object>()"
+      | _ -> raise (Failure ("initialization not implemented yet."))
     in
     let rec data_types = function
       String(id) -> "String " ^ id
@@ -27,9 +31,10 @@ let translate (globals, functions) =
     in let rec string_expr locals = function
       | Literal(l) -> string_literal l
       | Assign(s, e) -> s ^ " = " ^ string_expr locals e
-      | MapLiteral(ml) -> "new Object[]{" ^
+      | MapLiteral(ml) -> into_map ("new Object[]{" ^
           String.concat "," (List.map (fun (d,e) -> string_literal d ^ "," ^ string_expr locals e) ml) ^ 
-          "}"
+          "}")
+      | MapGet(id, key) -> id ^ ".get(" ^ string_expr locals key ^ ")"
       | Id(s) -> 
         if(List.exists (fun n -> n = s) locals) then
           s

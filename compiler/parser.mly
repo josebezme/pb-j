@@ -55,6 +55,7 @@ expr:
   | LBRACE map_entry_list RBRACE { MapLiteral($2) }
   | prim_literal { Literal($1) }
   | ID { Id($1) }
+  | ID LBRACE expr RBRACE { MapGet($1, $3) }
 
 vdecl:
   MAP ID { Map($2) }
