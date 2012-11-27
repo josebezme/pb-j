@@ -25,8 +25,8 @@
     * Maps (Jose)
 * Expressions
     * Operators
-        * Arithmetic (needs numeric types)
-        * Comparison (needs all types)
+        * Arithmetic (needs numeric types) (Fred)
+        * Comparison (needs all types) (Fred)
         * Inequalitied (needs numeric types)
         * Logical operators (needs boolean types)
         * String concat (needs string type)
