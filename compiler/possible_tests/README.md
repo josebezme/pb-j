@@ -15,7 +15,7 @@
         * Array (Robert) 
 * Lexical
     * ~~Comments~~
-    * Operators
+    * Operators (Hahn)
         * PBJ Op
         * Assignment operator
         * Return
