@@ -35,6 +35,7 @@ let translate (globals, functions) =
           String.concat "," (List.map (fun (d,e) -> string_literal d ^ "," ^ string_expr locals e) ml) ^ 
           "}")
       | MapGet(id, key) -> id ^ ".get(" ^ string_expr locals key ^ ")"
+      | MapPut(id, key, v) -> id ^ ".put(" ^ string_expr locals key ^ ", " ^ string_expr locals v ^ ")"
       | Id(s) -> 
         if(List.exists (fun n -> n = s) locals) then
           s
