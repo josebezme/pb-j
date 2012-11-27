@@ -5,8 +5,8 @@
 
 * Types
     * Primitive Types
-        * long (Fred) 
-        * double (Fred) 
+        * ~~long (Fred)~~ 
+        * ~~double (Fred)~~ 
         * ~~string~~
         * boolean (Rotem) 
         * null (Robert) 
