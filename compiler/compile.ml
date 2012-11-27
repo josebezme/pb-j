@@ -47,6 +47,7 @@ let translate (globals, functions) =
         let l = List.fold_left stmt ("", locals) stmts 
         in (output ^ "{\n" ^ (fst l) ^ "\n}\n", locals)
       | Print(s) -> (output ^ "System.out.println(" ^ string_expr locals s ^ ");\n", locals)
+      | Return(e) -> (output ^ "return " ^ string_expr locals e ^ ";\n", locals)
       | Expr(e) -> (output ^ string_expr locals e ^ ";\n", locals)
       | Declare(dt) -> 
         let name = get_dt_name dt in

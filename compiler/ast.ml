@@ -17,6 +17,7 @@ type expr =
 type stmt =
     Block of stmt list
   | Print of expr
+  | Return of expr
   | Declare of data_type
   | DeclareAssign of data_type * expr
   | Expr of expr
@@ -50,6 +51,7 @@ let rec string_of_stmt = function
     Block(stmts) ->
       "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
   | Print(str) -> "PRINT (" ^ string_of_expr str ^ ");\n"
+  | Return(e) -> "RETURN " ^ string_of_expr e ^ ";\n"
   | Expr(e) -> "EXPR: " ^ string_of_expr e ^ ";\n"
   | Declare(dt) -> "DECLARE: " ^ string_of_data_type dt ^ ";\n"
   | DeclareAssign(dt, e) -> "DECLARE: " ^ string_of_data_type dt ^ 
