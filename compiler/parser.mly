@@ -6,12 +6,14 @@ let parse_error s = (* Called by the parser function on error *)
 %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
-%token MAP ARRAY STRING
+%token MAP ARRAY STRING LONG DOUBLE
 %token COMMENT
 %token ASSIGN
 %token PRINT
 %token <string> STRING_LITERAL
 %token <string> ID
+%token <string> LONG_LITERAL
+%token <string> DUB_LITERAL
 %token EOF
 
 %start program
@@ -41,11 +43,15 @@ formal_list:
 
 expr:
   ID ASSIGN expr { Assign($1,$3) }
+  | LONG_LITERAL { LongLiteral($1) }
+  | DUB_LITERAL {DubLiteral($1)}
   | STRING_LITERAL { StringLiteral($1) }
   | ID { Id($1) }
 
 vdecl:
   MAP ID { Map($2) }
+  | LONG ID {Long ($2) }
+  | DOUBLE ID {Double ($2)}
   | ARRAY ID { Array($2) } 
   | STRING ID { String($2) }
 

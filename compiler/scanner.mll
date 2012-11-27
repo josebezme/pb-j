@@ -15,7 +15,11 @@ rule token = parse
 | "print"      { PRINT }
 | "string"     { STRING }
 | "<-"         { ASSIGN }
+| "long"	   { LONG }
+| "double"	   { DOUBLE }
 | '"' ([^'"']+ as s) '"'   { STRING_LITERAL(s) }
+| ['0'-'9']+ as lxm { LONG_LITERAL(lxm) }
+| ['0'-'9']* ['.'] ['0'-'9']+ as lxm { DUB_LITERAL(lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | eof      { EOF }
 | _  as char { raise (Failure("illegal character " ^ Char.escaped char)) }

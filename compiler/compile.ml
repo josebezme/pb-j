@@ -13,6 +13,9 @@ let translate (globals, functions) =
       String(id) -> id
       | Map(id) -> id
       | Array(id) -> id
+      | Double(id) -> id
+      | Long(id) -> id
+
     in
     let rec default_init = function
       String(id) -> "\"\""
@@ -22,9 +25,14 @@ let translate (globals, functions) =
       String(id) -> "String " ^ id
       | Map(id) -> "Map<Object, Object> " ^ id
       | Array(id) -> "List<Object> " ^ id
+      | Long(id) -> "Long " ^ id
+      | Double(id) -> "Double " ^ id
+
     in let rec string_expr locals = function
       StringLiteral(s) -> "\"" ^ s ^ "\""
       | Assign(s, e) -> s ^ " = " ^ string_expr locals e
+      | DubLiteral(s) -> "\"" ^ s ^ "\""
+      | LongLiteral(s) -> "\"" ^ s ^ "\""
       | Id(s) -> 
         if(List.exists (fun n -> n = s) locals) then
           s

@@ -2,11 +2,15 @@ type data_type =
   String of string
   | Map of string
   | Array of string
+  | Long of string
+  | Double of string
 
 type expr = 
   Assign of string * expr
   | Id of string
   | StringLiteral of string
+  | LongLiteral of string
+  | DubLiteral of string
 
 type stmt =
     Block of stmt list
@@ -27,11 +31,15 @@ let rec string_of_data_type = function
   String(s) -> "STRING " ^ s
   | Map(s) -> "MAP " ^ s
   | Array(s) -> "ARRAY " ^ s
+  | Long(s) -> "LONG" ^ s
+  | Double(s) -> "DOUBLE"
 
 let rec string_of_expr = function
   Assign(s, e) -> "ASSIGN " ^ s ^ " TO " ^ string_of_expr e ^ "\n"
   | StringLiteral(s) -> "\"" ^ s ^ "\""
   | Id(s) -> "ID:" ^ s
+  | LongLiteral(l) -> "LONG_LIT: " ^ l
+  | DubLiteral(l) -> "DUB_LIT: " ^ l
 
 let rec string_of_stmt = function
     Block(stmts) ->
@@ -48,6 +56,8 @@ let string_of_fdecl fdecl =
     ")\n{\n" ^
   String.concat "" (List.map string_of_stmt fdecl.body) ^
   "}\n"
+
+let string_of_vdecl id = "long " ^ id ^ ";\n"
 
 let string_of_program (vars, funcs) =
   "Vars: \n" ^ String.concat ";\n" (List.map string_of_data_type vars) ^ "\n" ^
