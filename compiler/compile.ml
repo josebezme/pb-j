@@ -29,6 +29,7 @@ let translate (globals, functions) =
     in let rec string_literal = function
       StringLiteral(s) -> "\"" ^ s ^ "\""
     in let rec check_assign locals e = function
+      (*  CHECK ASSIGN FOR STRING ***********************************************)
       String(es) -> (match e with
         (* if it's an id get the data type from locals list *)
         Id(o_s) -> let o_dt = List.find (fun dt -> get_dt_name dt = o_s) locals in
@@ -37,14 +38,26 @@ let translate (globals, functions) =
             String(s) -> true
             | _ -> raise (Failure ("Assigned string to invalid data type."))
           )
-        | Literal(l) -> ( (* Check the assignment of a string to an id *)
+        | Literal(l) -> 
+          ( (* Check the assignment of a string to an id *)
           match l with 
             StringLiteral(sl) -> true
-            | _ -> raise (Failure ("Assigned string to non string literal."))
+            | _ -> raise (Failure ("Assigned string to non-string literal."))
           )
         | MapLiteral(ml) -> raise (Failure ("Assigned string to map literal."))
         | _ -> raise (Failure ("Assigned string to invalid value."))
         )
+      (*  CHECK ASSIGN FOR MAP ***********************************************)
+      | Map(id) -> (match e with
+        Id(o_s) -> let o_dt = List.find (fun dt -> get_dt_name dt = o_s) locals in
+          ( (*  Check the assignment of a map to an id *)
+          match o_dt with
+            Map(s) -> true
+            | _ -> raise (Failure "Assigned map to invalid data type.")
+          )
+        | MapLiteral(ml) -> true
+        | _ -> raise (Failure "Asigned map to invalid expr.")
+        ) 
       | _ -> raise (Failure ("Not yet implemented check assignment for this dt."))
     in let rec string_expr locals = function
       | Literal(l) -> string_literal l
