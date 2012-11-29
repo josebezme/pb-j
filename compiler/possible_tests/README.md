@@ -18,18 +18,18 @@
     * Operators (Hahn)
         * PBJ Op
         * ~~Assignment operator~~ (Jose)
-        * ~~ Return ~~ (Hahn)
-    * Literal Types
-        * Literal primtives
+        * ~~Return~~ (Hahn)
+    * ~~Literal Types~~
+        * ~~Literal primtives~~
     * Arrays
-    * Maps (Jose)
+    * ~~Maps~~ (Jose)
 * Expressions
     * Operators
-        * Arithmetic (needs numeric types) (Fred)
-        * Comparison (needs all types) (Fred)
-        * Inequalities (needs numeric types)
-        * Logical operators (needs boolean types)
-        * String concat (needs string type)
+        * Arithmetic (Fred)
+        * Comparison (Fred)
+        * Inequalities 
+        * Logical operators 
+        * String concat (Jose)
     * ~~Assignment~~
     * Func Call
 * Blocks & Statments
