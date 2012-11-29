@@ -6,6 +6,7 @@ let parse_error s = (* Called by the parser function on error *)
 %}
 
 %token SEMI COLON LPAREN RPAREN LBRACE RBRACE COMMA
+%token STAR PIPE
 %token MAP ARRAY STRING LONG DOUBLE BOOLEAN
 %token COMMENT
 %token ASSIGN
@@ -64,6 +65,8 @@ expr:
   | ID { Id($1) }
   | ID LBRACE expr RBRACE ASSIGN expr { MapPut($1, $3, $6) }
   | ID LBRACE expr RBRACE { MapGet($1, $3) }
+  | ID STAR { MapKeys($1) }
+  | ID LBRACE STAR RBRACE { MapValues($1) }
 
 vdecl:
   MAP ID { Map($2) }

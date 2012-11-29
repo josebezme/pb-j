@@ -18,25 +18,22 @@ let translate (globals, functions) =
       | Double(id) -> id
       | Long(id) -> id
 
-    in
     (* This is a utility method for turning a map literal into a valid java expr
         The method it's self is in the backend code. *)
-    let into_map str = 
+    in let into_map str = 
       "plt.pbj.util.MapUtil.toMap(" ^ str ^ ")"
-    in
 
     (* Returns the default java initialization for a data type. *)
-    let rec default_init = function
+    in let rec default_init = function
       String(id) -> "\"\""
       | Map(id) -> "new HashMap<Object, Object>()"
       | Long(id) -> "0"
       | Double(id) -> "0"
       | Boolean(id) -> "false"
       | _ -> raise (Failure ("initialization not implemented yet."))
-    in
 
     (* Returns the java declaration of a datatype *)
-    let rec string_of_data_type = function
+    in let rec string_of_data_type = function
       String(id) -> "String " ^ id
       | Map(id) -> "Map<Object, Object> " ^ id
       | Array(id) -> "List<Object> " ^ id
@@ -124,6 +121,12 @@ let translate (globals, functions) =
         )
       | _ -> raise (Failure ("Not yet implemented check assignment for this dt."))
 
+    in let is_map locals id =
+      let rec is_map_helper = function
+        Map(id) -> true
+        | _ -> false
+      in List.exists (fun dt -> get_dt_name dt = id && is_map_helper dt) locals
+
     (* Basic recursive function for evaluating expressions *)
     in let rec string_of_expr locals = function
       | Literal(l) -> string_of_literal l
@@ -137,16 +140,31 @@ let translate (globals, functions) =
       | MapLiteral(ml) -> into_map ("new Object[]{" ^
           String.concat "," (List.map (fun (d,e) -> string_of_literal d ^ "," ^ string_of_expr locals e) ml) ^ 
           "}")
-      | MapGet(id, key) -> id ^ ".get(" ^ string_of_expr locals key ^ ")"
-      | MapPut(id, key, v) -> id ^ ".put(" ^ string_of_expr locals key ^ ", " ^ string_of_expr locals v ^ ")"
+      | MapGet(id, key) ->
+        if is_map locals id then 
+          id ^ ".get(" ^ string_of_expr locals key ^ ")"
+        else
+          raise (Failure (id ^ " is not a valid map type."))
+      | MapPut(id, key, v) -> if is_map locals id then
+          id ^ ".put(" ^ string_of_expr locals key ^ ", " ^ string_of_expr locals v ^ ")"
+        else
+          raise (Failure (id ^ " is not a valid map type."))
+      | MapKeys(id) ->  if is_map locals id then
+          "new ArrayList<Object>(" ^ id ^ ".keySet())"
+        else
+          raise (Failure (id ^ " is not a valid map type."))
+      | MapValues(id) -> if is_map locals id then
+          "new ArrayList<Object>(" ^ id ^ ".values()"
+        else
+          raise (Failure (id ^ " is not a valid map type."))
       | Id(s) -> 
         (* Ensures that the used id is within the current scope *)
         if(List.exists (fun dt -> get_dt_name dt = s) locals) then
           s
         else
           raise (Failure ("Undeclared variable " ^ s))
-    in
-    let rec string_of_stmt (output, locals) = function
+
+    in let rec string_of_stmt (output, locals) = function
       Block(string_of_stmts) -> 
         let l = List.fold_left string_of_stmt ("", locals) string_of_stmts 
         in (output ^ "{\n" ^ (fst l) ^ "\n}\n", locals)

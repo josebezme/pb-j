@@ -11,6 +11,8 @@ rule token = parse
 | ';'          { SEMI }
 | ':'          { COLON }
 | ','          { COMMA }
+| '|'          { PIPE }
+| '*'          { STAR }
 | "map"        { MAP }
 | "array"      { ARRAY }
 | "print"      { PRINT }
@@ -19,8 +21,8 @@ rule token = parse
 | "boolean"    { BOOLEAN }
 | "true"       { BOOLEAN_LITERAL(true) }
 | "false"      { BOOLEAN_LITERAL(false) }
-| "long"	   { LONG }
-| "double"	   { DOUBLE }
+| "long"       { LONG }
+| "double"     { DOUBLE }
 | '"' ([^'"']+ as s) '"'   { STRING_LITERAL(s) }
 | ['0'-'9']* ['.'] ['0'-'9']+ as lxm { DUB_LITERAL(lxm) }
 | ['0'-'9']+ as lxm { LONG_LITERAL(lxm) }

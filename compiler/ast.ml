@@ -19,6 +19,8 @@ type expr =
   | MapLiteral of (literal * expr) list
   | MapGet of string * expr
   | MapPut of string * expr * expr
+  | MapKeys of string
+  | MapValues of string
 
 type stmt =
     Block of stmt list
@@ -58,6 +60,8 @@ let rec string_of_expr = function
         (List.map (fun (a,b) -> string_of_literal a ^ ":" ^ string_of_expr b) ml) ^ "}"
   | MapGet(id,key) -> "MAP-" ^ id ^ "-GET{" ^ string_of_expr key ^ "}"
   | MapPut(id,key,v) -> "MAP-" ^ id ^ "-PUT{" ^ string_of_expr key ^ ", " ^ string_of_expr v ^ "}"
+  | MapKeys(id) -> "MAP-KEYS"
+  | MapValues(id) -> "MAP-VALUES"
 
 let rec string_of_stmt = function
     Block(stmts) ->
