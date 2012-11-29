@@ -8,17 +8,17 @@
         * ~~long (Fred)~~ 
         * ~~double (Fred)~~ 
         * ~~string~~
-        * boolean (Rotem) 
+        * ~~boolean~~ (Rotem) 
         * null (Robert) 
     * Collection Types
-        * Map (Jose)
+        * ~~Map~~ (Jose)
         * Array (Robert) 
 * Lexical
     * ~~Comments~~
     * Operators (Hahn)
         * PBJ Op
-        * Assignment operator
-        * Return
+        * ~~Assignment operator~~ (Jose)
+        * ~~ Return ~~ (Hahn)
     * Literal Types
         * Literal primtives
     * Arrays
@@ -27,10 +27,10 @@
     * Operators
         * Arithmetic (needs numeric types) (Fred)
         * Comparison (needs all types) (Fred)
-        * Inequalitied (needs numeric types)
+        * Inequalities (needs numeric types)
         * Logical operators (needs boolean types)
         * String concat (needs string type)
-    * Assignment
+    * ~~Assignment~~
     * Func Call
 * Blocks & Statments
     * ~~Blocks~~
