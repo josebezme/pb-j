@@ -29,7 +29,7 @@
         * Comparison (Fred)
         * Inequalities 
         * Logical operators 
-        * String concat (Jose)
+        * ~~String concat~~ (Jose)
     * ~~Assignment~~
     * Func Call
 * Blocks & Statments
