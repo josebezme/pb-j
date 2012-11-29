@@ -1,0 +1,5 @@
+master(map slaves, array args) {
+	boolean b;
+	b <- "true";
+	print(b);
+}

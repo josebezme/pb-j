@@ -37,12 +37,12 @@ type func_decl = {
 type program = data_type list * func_decl list
 
 let rec string_of_data_type = function
-  String(s) -> "STRING " ^ s
-  | Map(s) -> "MAP " ^ s
-  | Array(s) -> "ARRAY " ^ s
-  | Boolean(s) -> "BOOLEAN" ^ s
-  | Long(s) -> "LONG" ^ s
-  | Double(s) -> "DOUBLE " ^ s 
+  String(s) -> "STRING-" ^ s
+  | Map(s) -> "MAP-" ^ s
+  | Array(s) -> "ARRAY-" ^ s
+  | Boolean(s) -> "BOOLEAN-" ^ s
+  | Long(s) -> "LONG-" ^ s
+  | Double(s) -> "DOUBLE-" ^ s 
 
 let rec string_of_literal = function
   StringLiteral(s) -> "\"" ^ s ^ "\""

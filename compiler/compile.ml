@@ -24,14 +24,17 @@ let translate (globals, functions) =
     let into_map str = 
       "plt.pbj.util.MapUtil.toMap(" ^ str ^ ")"
     in
+
     (* Returns the default java initialization for a data type. *)
     let rec default_init = function
       String(id) -> "\"\""
       | Map(id) -> "new HashMap<Object, Object>()"
       | Long(id) -> "0"
       | Double(id) -> "0"
+      | Boolean(id) -> "false"
       | _ -> raise (Failure ("initialization not implemented yet."))
     in
+
     (* Returns the java declaration of a datatype *)
     let rec string_of_data_type = function
       String(id) -> "String " ^ id
@@ -92,10 +95,10 @@ let translate (globals, functions) =
           )
         | _ -> raise (Failure "Assigned long to invalid expression.")
         )
+      (* CHECK ASSIGN FOR DOUBLE ********************************************)
       | Double(id) -> (match e with
         Id(s) -> let dt = List.find (fun dt -> get_dt_name dt = s) locals in
-          (
-            match dt with
+          (match dt with
             Double(s) -> true
             | _ -> raise (Failure ("Assigned double to non-double id " ^ s))
           )
@@ -105,6 +108,19 @@ let translate (globals, functions) =
             | _ -> raise (Failure "Assigned double to invalid literal.")
           )
         | _ -> raise (Failure "Assigned double to invalid expression.")
+        )
+      (* CHECK ASSIGN FOR BOOLEAN ******************************************)
+      | Boolean(id) -> (match e with
+        Id(s) -> let dt = List.find (fun dt -> get_dt_name dt = s) locals in
+          (match dt with
+            Boolean(bid) -> true
+            | _ -> raise (Failure ("Assigned boolean to non-boolean id " ^ s))
+          )
+        | Literal(l) -> (match l with
+            BooleanLiteral(b) -> true
+            | _ -> raise (Failure "Assigned boolean to non-boolean literal.")
+          )
+        | _ -> raise (Failure "Assigned boolean to invalid expression.")
         )
       | _ -> raise (Failure ("Not yet implemented check assignment for this dt."))
 
