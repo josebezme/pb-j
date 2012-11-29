@@ -90,6 +90,7 @@ let translate (globals, functions) =
             LongLiteral(ll) -> true
             | _ -> raise (Failure "Assigned long to non-long literal")
           )
+        | Size(id) -> true
         | _ -> raise (Failure "Assigned long to invalid expression.")
         )
       (* CHECK ASSIGN FOR DOUBLE ********************************************)
@@ -127,6 +128,12 @@ let translate (globals, functions) =
         | _ -> false
       in List.exists (fun dt -> get_dt_name dt = id && is_map_helper dt) locals
 
+    in let is_array locals id =
+      let rec is_array_helper = function
+        Array(id) -> true
+        | _ -> false
+      in List.exists (fun dt -> get_dt_name dt = id && is_array_helper dt) locals
+
     (* Basic recursive function for evaluating expressions *)
     in let rec string_of_expr locals = function
       | Literal(l) -> string_of_literal l
@@ -157,6 +164,10 @@ let translate (globals, functions) =
           "new ArrayList<Object>(" ^ id ^ ".values()"
         else
           raise (Failure (id ^ " is not a valid map type."))
+      | Size(id) -> if (is_map locals id || is_array locals id) then
+          id ^ ".size()"
+        else
+          raise (Failure (id ^ " is not a valid map or array."))
       | Id(s) -> 
         (* Ensures that the used id is within the current scope *)
         if(List.exists (fun dt -> get_dt_name dt = s) locals) then

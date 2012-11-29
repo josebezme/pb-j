@@ -1,0 +1,4 @@
+master(map slaves, array args) {
+	map a <- { "a" : "hello", "b": "world"};
+	long b <- |a|;
+}

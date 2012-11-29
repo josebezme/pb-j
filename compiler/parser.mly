@@ -67,6 +67,7 @@ expr:
   | ID LBRACE expr RBRACE { MapGet($1, $3) }
   | ID STAR { MapKeys($1) }
   | ID LBRACE STAR RBRACE { MapValues($1) }
+  | PIPE ID PIPE { Size($2) }
 
 vdecl:
   MAP ID { Map($2) }
