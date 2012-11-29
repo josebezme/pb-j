@@ -14,6 +14,9 @@ let translate (globals, functions) =
       String(id) -> id
       | Map(id) -> id
       | Array(id) -> id
+      | Double(id) -> id
+      | Long(id) -> id
+
     in
     (* This is a utility method for turning a map literal into a valid java expr
         The method it's self is in the backend code. *)
@@ -24,6 +27,8 @@ let translate (globals, functions) =
     let rec default_init = function
       String(id) -> "\"\""
       | Map(id) -> "new HashMap<Object, Object>()"
+      | Long(id) -> "0"
+      | Double(id) -> "0"
       | _ -> raise (Failure ("initialization not implemented yet."))
     in
     (* Returns the java declaration of a datatype *)
@@ -31,9 +36,14 @@ let translate (globals, functions) =
       String(id) -> "String " ^ id
       | Map(id) -> "Map<Object, Object> " ^ id
       | Array(id) -> "List<Object> " ^ id
+      | Long(id) -> "Long " ^ id
+      | Double(id) -> "Double " ^ id
+
     (* Turns a literal object into a java expr *)
     in let rec string_of_literal = function
       StringLiteral(s) -> "\"" ^ s ^ "\""
+      | DubLiteral(s) -> s
+      | LongLiteral(s) -> s
     (* Checks for invalid assignments of data types *)
     in let rec check_assign locals e = function
       (*  CHECK ASSIGN FOR STRING ***********************************************)
@@ -52,7 +62,7 @@ let translate (globals, functions) =
             | _ -> raise (Failure ("Assigned string to non-string literal."))
           )
         | MapLiteral(ml) -> raise (Failure ("Assigned string to map literal."))
-        | _ -> raise (Failure ("Assigned string to invalid value."))
+        | _ -> raise (Failure ("Assigned string to invalid expression."))
         )
       (*  CHECK ASSIGN FOR MAP ***********************************************)
       | Map(id) -> (match e with
@@ -65,6 +75,37 @@ let translate (globals, functions) =
         | MapLiteral(ml) -> true
         | _ -> raise (Failure "Asigned map to invalid expr.")
         ) 
+      | Long(id) -> (match e with
+        Id(s) -> let dt = List.find (fun dt -> get_dt_name dt = s) locals in
+          (
+            match dt with
+            Long(s) -> true
+            | _ -> raise (Failure ("Assigned long to invalid non-long id " ^ s))
+          )
+        | Literal(l) -> 
+          (
+            match l with
+              LongLiteral(ll) -> true
+              | _ -> raise (Failure "Assigned long to non-long literal")
+          )
+        | _ -> raise (Failure "Assigned long to invalid expression.")
+        )
+      | Double(id) -> ( match e with
+        Id(s) -> let dt = List.find (fun dt -> get_dt_name dt = s) locals in
+          (
+            match dt with
+            Double(s) -> true
+            | _ -> raise (Failure ("Assigned double to non-double id " ^ s))
+          )
+        | Literal(l) ->
+          (
+            match l with
+              DubLiteral(dl) -> true
+              | LongLiteral(ll) -> true
+              | _ -> raise (Failure "Assigned double to invalid literal.")
+          )
+        | _ -> raise (Failure "Assigned double to invalid expression.")
+        )
       | _ -> raise (Failure ("Not yet implemented check assignment for this dt."))
     (* Basic recursive function for evaluating expressions *)
     in let rec string_of_expr locals = function
