@@ -14,6 +14,7 @@ let translate (globals, functions) =
       String(id) -> id
       | Map(id) -> id
       | Array(id) -> id
+      | Boolean(id) -> id 
       | Double(id) -> id
       | Long(id) -> id
 
@@ -36,6 +37,7 @@ let translate (globals, functions) =
       String(id) -> "String " ^ id
       | Map(id) -> "Map<Object, Object> " ^ id
       | Array(id) -> "List<Object> " ^ id
+      | Boolean(id) -> "Boolean " ^ id
       | Long(id) -> "Long " ^ id
       | Double(id) -> "Double " ^ id
 
@@ -44,6 +46,8 @@ let translate (globals, functions) =
       StringLiteral(s) -> "\"" ^ s ^ "\""
       | DubLiteral(s) -> s
       | LongLiteral(s) -> s
+      | BooleanLiteral(s) -> string_of_bool s
+
     (* Checks for invalid assignments of data types *)
     in let rec check_assign locals e = function
       (*  CHECK ASSIGN FOR STRING ***********************************************)
@@ -75,38 +79,35 @@ let translate (globals, functions) =
         | MapLiteral(ml) -> true
         | _ -> raise (Failure "Asigned map to invalid expr.")
         ) 
+      (* CHECK ASSIGN FOR LONG ***********************************************)
       | Long(id) -> (match e with
         Id(s) -> let dt = List.find (fun dt -> get_dt_name dt = s) locals in
-          (
-            match dt with
+          (match dt with
             Long(s) -> true
             | _ -> raise (Failure ("Assigned long to invalid non-long id " ^ s))
           )
-        | Literal(l) -> 
-          (
-            match l with
-              LongLiteral(ll) -> true
-              | _ -> raise (Failure "Assigned long to non-long literal")
+        | Literal(l) -> (match l with
+            LongLiteral(ll) -> true
+            | _ -> raise (Failure "Assigned long to non-long literal")
           )
         | _ -> raise (Failure "Assigned long to invalid expression.")
         )
-      | Double(id) -> ( match e with
+      | Double(id) -> (match e with
         Id(s) -> let dt = List.find (fun dt -> get_dt_name dt = s) locals in
           (
             match dt with
             Double(s) -> true
             | _ -> raise (Failure ("Assigned double to non-double id " ^ s))
           )
-        | Literal(l) ->
-          (
-            match l with
-              DubLiteral(dl) -> true
-              | LongLiteral(ll) -> true
-              | _ -> raise (Failure "Assigned double to invalid literal.")
+        | Literal(l) -> (match l with
+            DubLiteral(dl) -> true
+            | LongLiteral(ll) -> true
+            | _ -> raise (Failure "Assigned double to invalid literal.")
           )
         | _ -> raise (Failure "Assigned double to invalid expression.")
         )
       | _ -> raise (Failure ("Not yet implemented check assignment for this dt."))
+
     (* Basic recursive function for evaluating expressions *)
     in let rec string_of_expr locals = function
       | Literal(l) -> string_of_literal l

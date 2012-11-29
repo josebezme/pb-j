@@ -16,6 +16,9 @@ rule token = parse
 | "print"      { PRINT }
 | "string"     { STRING }
 | "<-"         { ASSIGN }
+| "boolean"    { BOOLEAN }
+| "true"       { BOOLEAN_LITERAL(true) }
+| "false"      { BOOLEAN_LITERAL(false) }
 | "long"	   { LONG }
 | "double"	   { DOUBLE }
 | '"' ([^'"']+ as s) '"'   { STRING_LITERAL(s) }
