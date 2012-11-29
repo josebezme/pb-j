@@ -9,6 +9,7 @@ let parse_error s = (* Called by the parser function on error *)
 %token MAP ARRAY STRING
 %token COMMENT
 %token ASSIGN
+%token RETURN
 %token PRINT
 %token <string> STRING_LITERAL
 %token <string> ID
@@ -70,6 +71,7 @@ stmt_list:
 stmt:
   vdecl SEMI { Declare($1) }
   | expr SEMI { Expr($1) }
+  | expr RETURN SEMI { Return($1) }
   | LBRACE stmt_list RBRACE { Block(List.rev $2) }
   | vdecl ASSIGN expr SEMI { DeclareAssign($1, $3) }
   | PRINT LPAREN expr RPAREN SEMI { Print($3) }
