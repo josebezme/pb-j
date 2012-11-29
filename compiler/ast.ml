@@ -2,11 +2,13 @@ type data_type =
   String of string
   | Map of string
   | Array of string
+  | Boolean of string
 
 type expr = 
   Assign of string * expr
   | Id of string
   | StringLiteral of string
+  | BooleanLiteral of bool
 
 type stmt =
     Block of stmt list
@@ -27,11 +29,13 @@ let rec string_of_data_type = function
   String(s) -> "STRING " ^ s
   | Map(s) -> "MAP " ^ s
   | Array(s) -> "ARRAY " ^ s
+  | Boolean(s) -> "BOOLEAN" ^ s
 
 let rec string_of_expr = function
   Assign(s, e) -> "ASSIGN " ^ s ^ " TO " ^ string_of_expr e ^ "\n"
   | StringLiteral(s) -> "\"" ^ s ^ "\""
   | Id(s) -> "ID:" ^ s
+  | BooleanLiteral(s) -> string_of_bool s
 
 let rec string_of_stmt = function
     Block(stmts) ->

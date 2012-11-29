@@ -5,11 +5,12 @@ let parse_error s = (* Called by the parser function on error *)
   flush stdout
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
+%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA BOOLEAN
 %token MAP ARRAY STRING
 %token COMMENT
 %token ASSIGN
 %token PRINT
+%token <bool> BOOLEAN_LITERAL
 %token <string> STRING_LITERAL
 %token <string> ID
 %token EOF
@@ -43,11 +44,13 @@ expr:
   ID ASSIGN expr { Assign($1,$3) }
   | STRING_LITERAL { StringLiteral($1) }
   | ID { Id($1) }
+  | BOOLEAN_LITERAL { BooleanLiteral($1) }  
 
 vdecl:
   MAP ID { Map($2) }
   | ARRAY ID { Array($2) } 
   | STRING ID { String($2) }
+  | BOOLEAN ID { Boolean($2) }
 
 stmt_list:
     /* nothing */  { [] }

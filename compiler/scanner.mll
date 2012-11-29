@@ -15,6 +15,9 @@ rule token = parse
 | "print"      { PRINT }
 | "string"     { STRING }
 | "<-"         { ASSIGN }
+| "boolean"    { BOOLEAN }
+| "true"       { BOOLEAN_LITERAL(true) }
+| "false"      { BOOLEAN_LITERAL(false) }
 | '"' ([^'"']+ as s) '"'   { STRING_LITERAL(s) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | eof      { EOF }

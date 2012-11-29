@@ -13,6 +13,7 @@ let translate (globals, functions) =
       String(id) -> id
       | Map(id) -> id
       | Array(id) -> id
+      | Boolean(id) -> id 
     in
     let rec default_init = function
       String(id) -> "\"\""
@@ -22,9 +23,11 @@ let translate (globals, functions) =
       String(id) -> "String " ^ id
       | Map(id) -> "Map<Object, Object> " ^ id
       | Array(id) -> "List<Object> " ^ id
+      | Boolean(id) -> "Boolean " ^ id
     in let rec string_expr locals = function
       StringLiteral(s) -> "\"" ^ s ^ "\""
       | Assign(s, e) -> s ^ " = " ^ string_expr locals e
+      | BooleanLiteral(s) -> string_of_bool s  
       | Id(s) -> 
         if(List.exists (fun n -> n = s) locals) then
           s
