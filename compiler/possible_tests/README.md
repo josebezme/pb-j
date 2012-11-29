@@ -5,8 +5,8 @@
 
 * Types
     * Primitive Types
-        * long (Fred) 
-        * double (Fred) 
+        * ~~long (Fred)~~ 
+        * ~~double (Fred)~~ 
         * ~~string~~
         * boolean (Rotem) 
         * null (Robert) 
@@ -15,7 +15,7 @@
         * Array (Robert) 
 * Lexical
     * ~~Comments~~
-    * Operators
+    * Operators (Hahn)
         * PBJ Op
         * Assignment operator
         * Return
@@ -25,8 +25,8 @@
     * Maps (Jose)
 * Expressions
     * Operators
-        * Arithmetic (needs numeric types)
-        * Comparison (needs all types)
+        * Arithmetic (needs numeric types) (Fred)
+        * Comparison (needs all types) (Fred)
         * Inequalitied (needs numeric types)
         * Logical operators (needs boolean types)
         * String concat (needs string type)
