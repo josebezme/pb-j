@@ -5,21 +5,28 @@
 
 * Types
     * Primitive Types
+        * ~~long (Fred)~~ 
+        * ~~double (Fred)~~ 
+        * ~~string~~
+        * boolean (Rotem) 
+        * null (Robert) 
     * Collection Types
+        * Map (Jose)
+        * Array (Robert) 
 * Lexical
     * ~~Comments~~
-    * Operators
+    * Operators (Hahn)
         * PBJ Op
         * Assignment operator
         * Return
     * Literal Types
         * Literal primtives
     * Arrays
-    * Maps
+    * Maps (Jose)
 * Expressions
     * Operators
-        * Arithmetic (needs numeric types)
-        * Comparison (needs all types)
+        * Arithmetic (needs numeric types) (Fred)
+        * Comparison (needs all types) (Fred)
         * Inequalitied (needs numeric types)
         * Logical operators (needs boolean types)
         * String concat (needs string type)
