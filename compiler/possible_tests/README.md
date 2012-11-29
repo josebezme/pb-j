@@ -18,7 +18,7 @@
     * Operators (Hahn)
         * PBJ Op
         * ~~Assignment operator~~ (Jose)
-        * ~~ Return ~~ (Hahn)
+        * ~~Return~~ (Hahn)
     * ~~Literal Types~~
         * ~~Literal primtives~~
     * Arrays
