@@ -19,10 +19,10 @@
         * PBJ Op
         * ~~Assignment operator~~ (Jose)
         * ~~ Return ~~ (Hahn)
-    * Literal Types
-        * Literal primtives
+    * ~~Literal Types~~
+        * ~~Literal primtives~~
     * Arrays
-    * Maps (Jose)
+    * ~~Maps~~ (Jose)
 * Expressions
     * Operators
         * Arithmetic (needs numeric types) (Fred)
