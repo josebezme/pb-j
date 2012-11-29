@@ -93,6 +93,7 @@ let translate (globals, functions) =
         let l = List.fold_left string_of_stmt ("", locals) string_of_stmts 
         in (output ^ "{\n" ^ (fst l) ^ "\n}\n", locals)
       | Print(s) -> (output ^ "System.out.println(" ^ string_of_expr locals s ^ ");\n", locals)
+      | Return(e) -> (output ^ "return " ^ string_of_expr locals e ^ ";\n", locals)
       | Expr(e) -> (output ^ string_of_expr locals e ^ ";\n", locals)
       | Declare(dt) -> 
         let name = get_dt_name dt in
