@@ -13,6 +13,7 @@ rule token = parse
 | ','          { COMMA }
 | '|'          { PIPE }
 | '*'          { STAR }
+| '~'          { CONCAT }
 | "map"        { MAP }
 | "array"      { ARRAY }
 | "print"      { PRINT }

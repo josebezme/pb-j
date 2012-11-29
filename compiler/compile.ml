@@ -65,6 +65,7 @@ let translate (globals, functions) =
             StringLiteral(sl) -> true
             | _ -> raise (Failure ("Assigned string to non-string literal."))
           )
+        | Concat(e1, e2) -> true
         | MapLiteral(ml) -> raise (Failure ("Assigned string to map literal."))
         | _ -> raise (Failure ("Assigned string to invalid expression."))
         )
@@ -168,6 +169,9 @@ let translate (globals, functions) =
           id ^ ".size()"
         else
           raise (Failure (id ^ " is not a valid map or array."))
+      | Concat(e1, e2) ->
+        (* Start it off with an empty string so java knows to concat any numeric values vs addition. *)
+        "(\"\" + " ^ string_of_expr locals e1 ^ " + " ^ string_of_expr locals e2 ^ ")" 
       | Id(s) -> 
         (* Ensures that the used id is within the current scope *)
         if(List.exists (fun dt -> get_dt_name dt = s) locals) then

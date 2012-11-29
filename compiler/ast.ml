@@ -22,6 +22,7 @@ type expr =
   | MapKeys of string
   | MapValues of string
   | Size of string
+  | Concat of expr * expr
 
 type stmt =
     Block of stmt list
@@ -64,6 +65,7 @@ let rec string_of_expr = function
   | MapKeys(id) -> "MAP-KEYS-" ^ id
   | MapValues(id) -> "MAP-VALUES-" ^ id
   | Size(id) -> "SIZE-of-" ^ id
+  | Concat(e1, e2) -> "CONCAT(" ^ string_of_expr e1 ^ "," ^ string_of_expr e1 ^ ")"
 
 let rec string_of_stmt = function
     Block(stmts) ->
