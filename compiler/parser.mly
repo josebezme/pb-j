@@ -5,14 +5,17 @@ let parse_error s = (* Called by the parser function on error *)
   flush stdout
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA BOOLEAN
-%token MAP ARRAY STRING
+%token SEMI COLON LPAREN RPAREN LBRACE RBRACE COMMA
+%token MAP ARRAY STRING LONG DOUBLE BOOLEAN
 %token COMMENT
 %token ASSIGN
+%token RETURN
 %token PRINT
 %token <bool> BOOLEAN_LITERAL
 %token <string> STRING_LITERAL
 %token <string> ID
+%token <string> LONG_LITERAL
+%token <string> DUB_LITERAL
 %token EOF
 
 %start program
@@ -40,14 +43,32 @@ formal_list:
   vdecl { [$1] }
   | formal_list COMMA vdecl { $3 :: $1 }
 
+map_entry_list:
+  { [] }
+  | map_entry { [$1] }
+  | map_entry_list COMMA map_entry { $3 :: $1 }
+
+map_entry:
+  | prim_literal COLON expr { ($1, $3) }
+
+prim_literal:
+  STRING_LITERAL { StringLiteral($1) }
+  | LONG_LITERAL { LongLiteral($1) }
+  | DUB_LITERAL {DubLiteral($1)}
+  | BOOLEAN_LITERAL { BooleanLiteral($1) }  
+
 expr:
   ID ASSIGN expr { Assign($1,$3) }
-  | STRING_LITERAL { StringLiteral($1) }
+  | LBRACE map_entry_list RBRACE { MapLiteral($2) }
+  | prim_literal { Literal($1) }
   | ID { Id($1) }
-  | BOOLEAN_LITERAL { BooleanLiteral($1) }  
+  | ID LBRACE expr RBRACE ASSIGN expr { MapPut($1, $3, $6) }
+  | ID LBRACE expr RBRACE { MapGet($1, $3) }
 
 vdecl:
   MAP ID { Map($2) }
+  | LONG ID {Long ($2) }
+  | DOUBLE ID {Double ($2)}
   | ARRAY ID { Array($2) } 
   | STRING ID { String($2) }
   | BOOLEAN ID { Boolean($2) }
@@ -58,10 +79,12 @@ stmt_list:
 
 stmt:
   vdecl SEMI { Declare($1) }
+  | expr SEMI { Expr($1) }
+  | expr RETURN SEMI { Return($1) }
   | LBRACE stmt_list RBRACE { Block(List.rev $2) }
   | vdecl ASSIGN expr SEMI { DeclareAssign($1, $3) }
   | PRINT LPAREN expr RPAREN SEMI { Print($3) }
-  | expr SEMI { Expr($1) }
+  
 
 
 

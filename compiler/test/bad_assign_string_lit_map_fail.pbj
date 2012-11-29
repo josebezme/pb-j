@@ -1,0 +1,5 @@
+master(map slaves, array args) {
+	string a <- "world";
+	a <- {}; ... Illegal  assignment to literal.
+	print("Hello");
+}
