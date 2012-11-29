@@ -10,6 +10,8 @@ parser.ml
 microc/microc
 compiler/pbjc
 
+.DS_Store
+
 # Package Files #
 *.war
 *.ear
