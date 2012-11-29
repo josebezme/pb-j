@@ -6,11 +6,12 @@ let parse_error s = (* Called by the parser function on error *)
 %}
 
 %token SEMI COLON LPAREN RPAREN LBRACE RBRACE COMMA
-%token MAP ARRAY STRING LONG DOUBLE
+%token MAP ARRAY STRING LONG DOUBLE BOOLEAN
 %token COMMENT
 %token ASSIGN
 %token RETURN
 %token PRINT
+%token <bool> BOOLEAN_LITERAL
 %token <string> STRING_LITERAL
 %token <string> ID
 %token <string> LONG_LITERAL
@@ -54,6 +55,7 @@ prim_literal:
   STRING_LITERAL { StringLiteral($1) }
   | LONG_LITERAL { LongLiteral($1) }
   | DUB_LITERAL {DubLiteral($1)}
+  | BOOLEAN_LITERAL { BooleanLiteral($1) }  
 
 expr:
   ID ASSIGN expr { Assign($1,$3) }
@@ -69,6 +71,7 @@ vdecl:
   | DOUBLE ID {Double ($2)}
   | ARRAY ID { Array($2) } 
   | STRING ID { String($2) }
+  | BOOLEAN ID { Boolean($2) }
 
 stmt_list:
     /* nothing */  { [] }

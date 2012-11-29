@@ -2,6 +2,7 @@ type data_type =
   String of string
   | Map of string
   | Array of string
+  | Boolean of string
   | Long of string
   | Double of string
 
@@ -9,6 +10,7 @@ type literal =
   | StringLiteral of string
   | LongLiteral of string
   | DubLiteral of string
+  | BooleanLiteral of bool
 
 type expr = 
   Assign of string * expr
@@ -38,13 +40,15 @@ let rec string_of_data_type = function
   String(s) -> "STRING " ^ s
   | Map(s) -> "MAP " ^ s
   | Array(s) -> "ARRAY " ^ s
+  | Boolean(s) -> "BOOLEAN" ^ s
   | Long(s) -> "LONG" ^ s
-  | Double(s) -> "DOUBLE"
+  | Double(s) -> "DOUBLE " ^ s 
 
 let rec string_of_literal = function
   StringLiteral(s) -> "\"" ^ s ^ "\""
   | LongLiteral(l) -> "LONG_LIT: " ^ l
   | DubLiteral(l) -> "DUB_LIT: " ^ l
+  | BooleanLiteral(s) -> string_of_bool s
 
 let rec string_of_expr = function
   Assign(s, e) -> "ASSIGN " ^ s ^ " TO " ^ string_of_expr e
