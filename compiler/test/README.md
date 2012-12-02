@@ -27,7 +27,7 @@
     * Operators
         * Arithmetic (Fred)
         * Comparison (Fred)
-        * Inequalities 
+        * Inequalities (FRED)
         * Logical operators 
         * ~~String concat~~ (Jose)
     * ~~Assignment~~
