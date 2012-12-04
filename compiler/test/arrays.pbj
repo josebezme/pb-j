@@ -1,8 +1,0 @@
-master(map slaves, array args) {
-	array a;
-	array b <- [10, 12, "apple"];
-	a[1] <- 1;
-	|a|;
-...	print( a[1] );
-...	print( b[2] );
-}

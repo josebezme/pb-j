@@ -5,32 +5,32 @@
 
 * Types
     * Primitive Types
-        * long (Fred) 
-        * double (Fred) 
+        * ~~long (Fred)~~ 
+        * ~~double (Fred)~~ 
         * ~~string~~
-        * boolean (Rotem) 
+        * ~~boolean~~ (Rotem) 
         * null (Robert) 
     * Collection Types
-        * Map (Jose)
+        * ~~Map~~ (Jose)
         * Array (Robert) 
 * Lexical
     * ~~Comments~~
-    * Operators
+    * Operators (Hahn)
         * PBJ Op
-        * Assignment operator
-        * Return
-    * Literal Types
-        * Literal primtives
+        * ~~Assignment operator~~ (Jose)
+        * ~~Return~~ (Hahn)
+    * ~~Literal Types~~
+        * ~~Literal primtives~~
     * Arrays
-    * Maps (Jose)
+    * ~~Maps~~ (Jose)
 * Expressions
     * Operators
-        * Arithmetic (needs numeric types)
-        * Comparison (needs all types)
-        * Inequalitied (needs numeric types)
-        * Logical operators (needs boolean types)
-        * String concat (needs string type)
-    * Assignment
+        * Arithmetic (Fred)
+        * Comparison (Fred)
+        * Inequalities (FRED)
+        * Logical operators 
+        * ~~String concat~~ (Jose)
+    * ~~Assignment~~
     * Func Call
 * Blocks & Statments
     * ~~Blocks~~

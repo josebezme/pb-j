@@ -1,0 +1,5 @@
+master(map slaves, array args) {
+double a;
+double b <- 12.34;
+double c <- .5678;
+}

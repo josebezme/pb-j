@@ -1,0 +1,6 @@
+master(map slaves, array args) {
+	string a <- "world";
+	map b;
+	b <- a;
+	print(b{"a"});
+}

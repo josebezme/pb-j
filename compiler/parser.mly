@@ -8,13 +8,20 @@ let parse_error s = (* Called by the parser function on error *)
 %token SEMI LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET COMMA BAR
 %token MAP ARRAY STRING
 %token NULL
+%token SEMI COLON LPAREN RPAREN LBRACE RBRACE COMMA LBRACKET RBRACKET
+%token STAR PIPE CONCAT
+%token MAP ARRAY STRING LONG DOUBLE BOOLEAN
 %token COMMENT
 %token ASSIGN
+%token RETURN
 %token PRINT
-%token <string> INT_LITERAL
+%token <string> ARRAY_BEGIN
+%token <bool> BOOLEAN_LITERAL
 %token <string> STRING_LITERAL
 %token <string> ARRAY_LITERAL
 %token <string> ID
+%token <string> LONG_LITERAL
+%token <string> DUB_LITERAL
 %token EOF
 
 %left  ID LBRACKET RBRACKET
@@ -45,43 +52,60 @@ formal_list:
   vdecl { [$1] }
   | formal_list COMMA vdecl { $3 :: $1 }
 
+map_entry_list:
+  { [] }
+  | map_entry { [$1] }
+  | map_entry_list COMMA map_entry { $3 :: $1 }
+
+map_entry:
+  | prim_literal COLON expr { ($1, $3) }
+
+array_list:
+    /* nothing */  { [] }
+  | expr { [$1] }
+  | array_list COMMA expr  { $3 :: $1 }
+
+prim_literal:
+  STRING_LITERAL { StringLiteral($1) }
+  | LONG_LITERAL { LongLiteral($1) }
+  | DUB_LITERAL {DubLiteral($1)}
+  | BOOLEAN_LITERAL { BooleanLiteral($1) }
+
 expr:
-  ID ASSIGN expr   { Assign($1,$3) }
-  | ID LBRACKET expr RBRACKET { GetArray($1, $3) }
-  | STRING_LITERAL { StringLiteral($1) }
-	| NULL           { Null } 
-	| INT_LITERAL    { IntLiteral($1) }
-	| LBRACKET array_list RBRACKET  { ArrayLiteral($2) }
-	| BAR ID BAR     { ArrayLength($2) }
-  | ID             { Id($1) }
+  ID { Id($1) }
+  | NULL           { Null } 
+  | ID ASSIGN expr   { Assign($1,$3) }
+  | prim_literal { Literal($1) }
+  | ARRAY_BEGIN expr RBRACKET ASSIGN expr { ArrayPut($1, $2, $5) }
+  | ARRAY_BEGIN expr RBRACKET { ArrayGet($1, $2) }
+	| LBRACKET array_list RBRACKET  { ArrayLiteral(List.rev $2) }
+  | LBRACE map_entry_list RBRACE { MapLiteral($2) }
+  | ID LBRACE expr RBRACE ASSIGN expr { MapPut($1, $3, $6) }
+  | ID LBRACE expr RBRACE { MapGet($1, $3) }
+  | ID STAR { MapKeys($1) }
+  | ID LBRACE STAR RBRACE { MapValues($1) }
+  | PIPE ID PIPE { Size($2) }
+  | expr CONCAT expr { Concat($1, $3) }
 
 vdecl:
   MAP ID { Map($2) }
+  | LONG ID {Long ($2) }
+  | DOUBLE ID {Double ($2)}
   | ARRAY ID { Array($2) } 
   | STRING ID { String($2) }
-
-adecl:
- ID { Id($1) } 
+  | BOOLEAN ID { Boolean($2) }
 
 stmt_list:
     /* nothing */  { [] }
   | stmt_list stmt { $2 :: $1 }
 
-array_list:
-    /* nothing */  { [] }
-  | array_list li  { $2 :: $1 }
-
-li:
-    expr COMMA { Clear($1) }
-	| expr       { Clear($1) }
-
 stmt:
-  vdecl SEMI                { Declare($1) }
+  vdecl SEMI { Declare($1) }
+  | expr SEMI { Expr($1) }
+  | expr RETURN SEMI { Return($1) }
   | LBRACE stmt_list RBRACE { Block(List.rev $2) }
-  | vdecl ASSIGN expr SEMI  { DeclareAssign($1, $3) }
-  | adecl LBRACKET expr RBRACKET ASSIGN expr SEMI { PutArray($1, $3, $6) }
-	| PRINT LPAREN expr RPAREN SEMI { Print($3) }
-  | expr SEMI               { Expr($1) }
+  | vdecl ASSIGN expr SEMI { DeclareAssign($1, $3) }
+  | PRINT LPAREN expr RPAREN SEMI { Print($3) }
 
 
 

@@ -10,20 +10,29 @@ rule token = parse
 | ']'          { RBRACKET }
 | '{'          { LBRACE }
 | '}'          { RBRACE }
-| ';'          { SEMI   }
-| ','          { COMMA  }
-| '|'          { BAR    }
-| "map"        { MAP    }
-| "array"      { ARRAY  }
-| "print"      { PRINT  }
+| ';'          { SEMI }
+| ':'          { COLON }
+| ','          { COMMA }
+| '|'          { PIPE }
+| '*'          { STAR }
+| '~'          { CONCAT }
+| "map"        { MAP }
+| "array"      { ARRAY }
+| "print"      { PRINT }
 | "string"     { STRING }
 | "<-"         { ASSIGN }
-| "null"       { NULL   }(*null is not a string*)
+| "boolean"    { BOOLEAN }
+| "true"       { BOOLEAN_LITERAL(true) }
+| "false"      { BOOLEAN_LITERAL(false) }
+| "long"       { LONG }
+| "double"     { DOUBLE }
+| (['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as id) "[" { ARRAY_BEGIN(id) }
 | '"' ([^'"']+ as s) '"'   { STRING_LITERAL(s) }
-(*| '[' ([^']']+ as s) ']'   { ARRAY_LITERAL(s)  }*)
-| ['0'-'9']+ as s { INT_LITERAL(s) }
+| ['0'-'9']* ['.'] ['0'-'9']+ as lxm { DUB_LITERAL(lxm) }
+| ['0'-'9']+ as lxm { LONG_LITERAL(lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
-| eof      { EOF }
+| eof          { EOF }
+| "->"         { RETURN }
 | _  as char { raise (Failure("illegal character " ^ Char.escaped char)) }
 
 and comment = parse
