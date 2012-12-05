@@ -28,10 +28,10 @@
         * Arithmetic (Fred)
         * Comparison (Fred)
         * Inequalities (FRED)
-        * Logical operators 
+        * Logical operators (Hahn)
         * ~~String concat~~ (Jose)
     * ~~Assignment~~
-    * Func Call
+    * Func Call (Rotem)
 * Blocks & Statments
     * ~~Blocks~~
     * Spread (should do last)
