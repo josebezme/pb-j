@@ -1,0 +1,5 @@
+master(map slaves, array args) {
+	long b;
+	array a <- [[b, b], 10, "yada"];
+	print ( a );
+}

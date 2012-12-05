@@ -1,6 +1,6 @@
 type data_type =
-  String of string
-  | Map of string
+  String  of string
+  | Map   of string
   | Array of string
   | Boolean of string
   | Long of string
@@ -16,6 +16,11 @@ type expr =
   Assign of string * expr
   | Id of string
   | Literal of literal
+  | ArrayGet      of string * expr
+  | ArrayLiteral  of expr list
+  | ArrayPut      of string * expr * expr
+  | Null
+  | Clear         of expr
   | MapLiteral of (literal * expr) list
   | MapGet of string * expr
   | MapPut of string * expr * expr
@@ -30,7 +35,7 @@ type stmt =
   | Return of expr
   | Declare of data_type
   | DeclareAssign of data_type * expr
-  | Expr of expr
+  | Expr          of expr
 
 type func_decl = {
     fname : string;
@@ -58,6 +63,10 @@ let rec string_of_expr = function
   Assign(s, e) -> "ASSIGN " ^ s ^ " TO " ^ string_of_expr e
   | Literal(l) -> string_of_literal l
   | Id(s) -> "ID:" ^ s
+  | ArrayGet(id,idx) -> "ARRAY-" ^ id ^ "-GET[" ^ string_of_expr idx ^ "]"
+  | ArrayPut(id, idx, e)   -> "ARRAY-" ^ id ^ "-PUT[" ^ string_of_expr idx ^ ", " ^ string_of_expr e ^ "]"
+  | ArrayLiteral(al) -> "ARRAY[" ^ String.concat "," 
+        (List.map (fun e -> string_of_expr e ) al) ^ "]"
   | MapLiteral(ml) -> "MAP{" ^ String.concat "," 
         (List.map (fun (a,b) -> string_of_literal a ^ ":" ^ string_of_expr b) ml) ^ "}"
   | MapGet(id,key) -> "MAP-" ^ id ^ "-GET{" ^ string_of_expr key ^ "}"

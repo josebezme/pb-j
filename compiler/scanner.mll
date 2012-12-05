@@ -6,6 +6,8 @@ rule token = parse
 | "..."        { comment lexbuf }
 | '('          { LPAREN }
 | ')'          { RPAREN }
+| '['          { LBRACKET }
+| ']'          { RBRACKET }
 | '{'          { LBRACE }
 | '}'          { RBRACE }
 | ';'          { SEMI }
@@ -24,6 +26,7 @@ rule token = parse
 | "false"      { BOOLEAN_LITERAL(false) }
 | "long"       { LONG }
 | "double"     { DOUBLE }
+| (['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as id) "[" { ARRAY_BEGIN(id) }
 | '"' ([^'"']+ as s) '"'   { STRING_LITERAL(s) }
 | ['0'-'9']* ['.'] ['0'-'9']+ as lxm { DUB_LITERAL(lxm) }
 | ['0'-'9']+ as lxm { LONG_LITERAL(lxm) }
