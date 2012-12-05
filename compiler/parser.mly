@@ -5,19 +5,27 @@ let parse_error s = (* Called by the parser function on error *)
   flush stdout
 %}
 
-%token SEMI COLON LPAREN RPAREN LBRACE RBRACE COMMA
+%token SEMI LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET COMMA BAR
+%token MAP ARRAY STRING
+%token NULL
+%token SEMI COLON LPAREN RPAREN LBRACE RBRACE COMMA LBRACKET RBRACKET
 %token STAR PIPE CONCAT
 %token MAP ARRAY STRING LONG DOUBLE BOOLEAN
 %token COMMENT
 %token ASSIGN
 %token RETURN
 %token PRINT
+%token <string> ARRAY_BEGIN
 %token <bool> BOOLEAN_LITERAL
 %token <string> STRING_LITERAL
+%token <string> ARRAY_LITERAL
 %token <string> ID
 %token <string> LONG_LITERAL
 %token <string> DUB_LITERAL
 %token EOF
+
+%left  ID LBRACKET RBRACKET
+%left ASSIGN
 
 %start program
 %type <Ast.program> program
@@ -52,17 +60,26 @@ map_entry_list:
 map_entry:
   | prim_literal COLON expr { ($1, $3) }
 
+array_list:
+    /* nothing */  { [] }
+  | expr { [$1] }
+  | array_list COMMA expr  { $3 :: $1 }
+
 prim_literal:
   STRING_LITERAL { StringLiteral($1) }
   | LONG_LITERAL { LongLiteral($1) }
   | DUB_LITERAL {DubLiteral($1)}
-  | BOOLEAN_LITERAL { BooleanLiteral($1) }  
+  | BOOLEAN_LITERAL { BooleanLiteral($1) }
 
 expr:
-  ID ASSIGN expr { Assign($1,$3) }
-  | LBRACE map_entry_list RBRACE { MapLiteral($2) }
+  ID { Id($1) }
+  | NULL           { Null } 
+  | ID ASSIGN expr   { Assign($1,$3) }
   | prim_literal { Literal($1) }
-  | ID { Id($1) }
+  | ARRAY_BEGIN expr RBRACKET ASSIGN expr { ArrayPut($1, $2, $5) }
+  | ARRAY_BEGIN expr RBRACKET { ArrayGet($1, $2) }
+	| LBRACKET array_list RBRACKET  { ArrayLiteral(List.rev $2) }
+  | LBRACE map_entry_list RBRACE { MapLiteral($2) }
   | ID LBRACE expr RBRACE ASSIGN expr { MapPut($1, $3, $6) }
   | ID LBRACE expr RBRACE { MapGet($1, $3) }
   | ID STAR { MapKeys($1) }
@@ -89,7 +106,6 @@ stmt:
   | LBRACE stmt_list RBRACE { Block(List.rev $2) }
   | vdecl ASSIGN expr SEMI { DeclareAssign($1, $3) }
   | PRINT LPAREN expr RPAREN SEMI { Print($3) }
-  
 
 
 

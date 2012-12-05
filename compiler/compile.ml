@@ -26,6 +26,7 @@ let translate (globals, functions) =
     (* Returns the default java initialization for a data type. *)
     in let rec default_init = function
       String(id) -> "\"\""
+      | Array(id) -> "new ArrayList<Object>()"
       | Map(id) -> "new HashMap<Object, Object>()"
       | Long(id) -> "0"
       | Double(id) -> "0"
@@ -148,6 +149,20 @@ let translate (globals, functions) =
       | MapLiteral(ml) -> into_map ("new Object[]{" ^
           String.concat "," (List.map (fun (d,e) -> string_of_literal d ^ "," ^ string_of_expr locals e) ml) ^ 
           "}")
+      | ArrayLiteral(a) -> 
+          let rec array_expr locals array = match array with 
+                  []        -> []
+                | e::a      -> string_of_expr locals e :: array_expr locals a
+          in "new ArrayList<Object> (Arrays.asList(" ^ (String.concat ", " (List.rev (array_expr locals a))) ^ "))"
+      | Null                -> "null"
+      | ArrayGet(id, idx)      -> id ^ ".get(" ^ string_of_expr locals idx ^ ")"(**)
+      | ArrayPut(id, idx, e) -> 
+                     id
+                     ^ ".set(" 
+                     ^ string_of_expr locals idx 
+                     ^ ", " 
+                     ^ string_of_expr locals e 
+                     ^ ")"
       | MapGet(id, key) ->
         if is_map locals id then 
           id ^ ".get(" ^ string_of_expr locals key ^ ")"
@@ -178,6 +193,7 @@ let translate (globals, functions) =
           s
         else
           raise (Failure ("Undeclared variable " ^ s))
+		  | Clear(e)            -> string_of_expr locals e
 
     in let rec string_of_stmt (output, locals) = function
       Block(string_of_stmts) -> 

@@ -1,0 +1,4 @@
+master(map slaves, array args) {
+	array a;
+	print( a[0] );
+}
