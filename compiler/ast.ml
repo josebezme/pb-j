@@ -75,6 +75,7 @@ let rec string_of_expr = function
   | MapValues(id) -> "MAP-VALUES-" ^ id
   | Size(id) -> "SIZE-of-" ^ id
   | Concat(e1, e2) -> "CONCAT(" ^ string_of_expr e1 ^ "," ^ string_of_expr e1 ^ ")"
+  | Null -> "NULL"
 
 let rec string_of_stmt = function
     Block(stmts) ->

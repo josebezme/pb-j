@@ -28,8 +28,8 @@ let translate (globals, functions) =
       String(id) -> "\"\""
       | Array(id) -> "new ArrayList<Object>()"
       | Map(id) -> "new HashMap<Object, Object>()"
-      | Long(id) -> "0"
-      | Double(id) -> "0"
+      | Long(id) -> "0L"
+      | Double(id) -> "0.0"
       | Boolean(id) -> "false"
       | _ -> raise (Failure ("initialization not implemented yet."))
 
@@ -45,20 +45,36 @@ let translate (globals, functions) =
     (* Turns a literal object into a java expr *)
     in let rec string_of_literal = function
       StringLiteral(s) -> "\"" ^ s ^ "\""
-      | DubLiteral(s) -> s
-      | LongLiteral(s) -> s
+      | DubLiteral(s) -> "new Double(" ^ s ^ ")"
+      | LongLiteral(s) -> "new Long(" ^ s ^ ")"
       | BooleanLiteral(s) -> string_of_bool s
+
+    in let get_dt_from_name name locals =
+      List.find (fun dt -> get_dt_name dt = name) locals
+
+    in let rec check_array_index locals = function
+      Id(id) -> (match (get_dt_from_name id locals) with
+          Long(id) -> true
+          | _ -> raise (Failure ("Variable " ^ id ^ " is not valid index for array."))
+        )
+      | Literal(l) -> (match l with 
+          LongLiteral(s) -> true
+          | _ -> raise (Failure ("Used invalid data type for array index."))
+        )
+      | MapGet(id, key) -> true
+      | ArrayGet(id, idx) -> true
+      | ArrayPut(id, idx, e) -> check_array_index locals e
+      | Size(id) -> true
+      | _ -> raise (Failure ("Used invalid expression for array index."))
 
     (* Checks for invalid assignments of data types *)
     in let rec check_assign locals e = function
       (*  CHECK ASSIGN FOR STRING ***********************************************)
       String(es) -> (match e with
         (* if it's an id get the data type from locals list *)
-        Id(o_s) -> let o_dt = List.find (fun dt -> get_dt_name dt = o_s) locals in
-          ( (* Check the assignment of a variable *)
-          match o_dt with
+        Id(id) -> (match (get_dt_from_name id locals) with
             String(s) -> true
-            | _ -> raise (Failure ("Assigned string to invalid data type."))
+            | _ -> raise (Failure ("Assigned string to invalid data type: " ^ id))
           )
         | Literal(l) -> 
           ( (* Check the assignment of a string to an id *)
@@ -70,11 +86,20 @@ let translate (globals, functions) =
         | MapLiteral(ml) -> raise (Failure ("Assigned string to map literal."))
         | _ -> raise (Failure ("Assigned string to invalid expression."))
         )
+      (* CHECK ASSIGN FOR ARRAY **********************************************)
+      | Array(id) -> (match e with
+        Id(id) -> (match (get_dt_from_name id locals) with
+            Array(id) -> true
+            | _ -> raise (Failure ("Assigned array to non-array type: " ^ id))
+          )
+        | ArrayLiteral(a) -> true
+        | MapValues(id) -> true
+        | MapKeys(id) -> true
+        | _ -> raise (Failure ("Assigned array to invalid expression."))
+        )
       (*  CHECK ASSIGN FOR MAP ***********************************************)
       | Map(id) -> (match e with
-        Id(o_s) -> let o_dt = List.find (fun dt -> get_dt_name dt = o_s) locals in
-          ( (*  Check the assignment of a map to an id *)
-          match o_dt with
+        Id(id) -> (match (get_dt_from_name id locals) with
             Map(s) -> true
             | _ -> raise (Failure "Assigned map to invalid data type.")
           )
@@ -83,10 +108,9 @@ let translate (globals, functions) =
         ) 
       (* CHECK ASSIGN FOR LONG ***********************************************)
       | Long(id) -> (match e with
-        Id(s) -> let dt = List.find (fun dt -> get_dt_name dt = s) locals in
-          (match dt with
+        Id(id) -> (match (get_dt_from_name id locals) with
             Long(s) -> true
-            | _ -> raise (Failure ("Assigned long to invalid non-long id " ^ s))
+            | _ -> raise (Failure ("Assigned long to invalid non-long id " ^ id))
           )
         | Literal(l) -> (match l with
             LongLiteral(ll) -> true
@@ -97,10 +121,9 @@ let translate (globals, functions) =
         )
       (* CHECK ASSIGN FOR DOUBLE ********************************************)
       | Double(id) -> (match e with
-        Id(s) -> let dt = List.find (fun dt -> get_dt_name dt = s) locals in
-          (match dt with
+        Id(id) -> (match (get_dt_from_name id locals) with
             Double(s) -> true
-            | _ -> raise (Failure ("Assigned double to non-double id " ^ s))
+            | _ -> raise (Failure ("Assigned double to non-double id " ^ id))
           )
         | Literal(l) -> (match l with
             DubLiteral(dl) -> true
@@ -111,10 +134,9 @@ let translate (globals, functions) =
         )
       (* CHECK ASSIGN FOR BOOLEAN ******************************************)
       | Boolean(id) -> (match e with
-        Id(s) -> let dt = List.find (fun dt -> get_dt_name dt = s) locals in
-          (match dt with
+        Id(id) -> (match (get_dt_from_name id locals) with
             Boolean(bid) -> true
-            | _ -> raise (Failure ("Assigned boolean to non-boolean id " ^ s))
+            | _ -> raise (Failure ("Assigned boolean to non-boolean id " ^ id))
           )
         | Literal(l) -> (match l with
             BooleanLiteral(b) -> true
@@ -155,14 +177,22 @@ let translate (globals, functions) =
                 | e::a      -> string_of_expr locals e :: array_expr locals a
           in "new ArrayList<Object> (Arrays.asList(" ^ (String.concat ", " (List.rev (array_expr locals a))) ^ "))"
       | Null                -> "null"
-      | ArrayGet(id, idx)      -> id ^ ".get(" ^ string_of_expr locals idx ^ ")"(**)
+      | ArrayGet(id, idx)      -> 
+        if check_array_index locals idx then
+          id ^ ".get(" ^ string_of_expr locals idx ^ ".intValue())"(**)
+        else
+          raise (Failure "Should have failed before here.")
       | ArrayPut(id, idx, e) -> 
+        if check_array_index locals idx then
                      id
                      ^ ".set(" 
                      ^ string_of_expr locals idx 
+                     ^ ".intValue()"
                      ^ ", " 
                      ^ string_of_expr locals e 
                      ^ ")"
+        else
+          raise (Failure "Should have failed before here.")
       | MapGet(id, key) ->
         if is_map locals id then 
           id ^ ".get(" ^ string_of_expr locals key ^ ")"
