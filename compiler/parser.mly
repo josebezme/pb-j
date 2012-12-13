@@ -53,6 +53,14 @@ formal_list:
   vdecl { [$1] }
   | formal_list COMMA vdecl { $3 :: $1 }
 
+actuals_opt:
+    /* nothing */ { [] }
+  | actuals_list  { List.rev $1 }
+
+actuals_list:
+    expr                    { [$1] }
+  | actuals_list COMMA expr { $3 :: $1 }  
+
 map_entry_list:
   { [] }
   | map_entry { [$1] }
@@ -76,6 +84,7 @@ stmt_expr:
   ARRAY_BEGIN expr RBRACKET ASSIGN expr { ArrayPut($1, $2, $5) }
   | ID LBRACE expr RBRACE ASSIGN expr { MapPut($1, $3, $6) }
   | ID ASSIGN expr   { Assign($1,$3) }
+  | ID LPAREN actuals_opt RPAREN { FunctionCall($1,$3) }    
 
 expr:
   stmt_expr { StmtExpr($1) }

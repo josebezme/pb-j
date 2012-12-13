@@ -183,6 +183,7 @@ let translate (globals, functions) =
           id ^ ".put(" ^ string_of_expr locals key ^ ", " ^ string_of_expr locals v ^ ")"
         else
           raise (Failure (id ^ " is not a valid map type."))
+      | FunctionCall(s,e) -> s ^ "("  ^  String.concat "," (List.map (string_of_expr locals) e) ^ ")" 
     and string_of_expr locals = function
       StmtExpr(e) -> string_of_stmt_expr locals e
       | Literal(l) -> string_of_literal l
