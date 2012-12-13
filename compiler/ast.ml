@@ -16,6 +16,7 @@ type stmt_expr =
   Assign of string * expr
   | ArrayPut      of string * expr * expr
   | MapPut of string * expr * expr
+  | FunctionCall of string * expr list  
 
 and expr = 
   StmtExpr of stmt_expr
@@ -65,6 +66,7 @@ let rec string_of_stmt_expr = function
   Assign(s, e) -> "ASSIGN " ^ s ^ " TO " ^ string_of_expr e
   | ArrayPut(id, idx, e)   -> "ARRAY-" ^ id ^ "-PUT[" ^ string_of_expr idx ^ ", " ^ string_of_expr e ^ "]"
   | MapPut(id,key,v) -> "MAP-" ^ id ^ "-PUT{" ^ string_of_expr key ^ ", " ^ string_of_expr v ^ "}"
+  | FunctionCall(s,e) ->"FUNCTION CALL " ^ s ^   "{\n" ^ String.concat "," (List.map string_of_expr e) ^ "}\n"  
 
 and string_of_expr = function
   StmtExpr(e) -> string_of_stmt_expr e
