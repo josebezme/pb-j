@@ -5,14 +5,14 @@
 
 * Types
     * Primitive Types
-        * ~~long (Fred)~~ 
-        * ~~double (Fred)~~ 
+        * ~~long~~ (Fred)
+        * ~~double~~ (Fred)
         * ~~string~~
         * ~~boolean~~ (Rotem) 
         * null (Robert) 
     * Collection Types
         * ~~Map~~ (Jose)
-        * Array (Robert) 
+        * ~~Array~~ (Robert) 
 * Lexical
     * ~~Comments~~
     * Operators (Hahn)
@@ -21,7 +21,7 @@
         * ~~Return~~ (Hahn)
     * ~~Literal Types~~
         * ~~Literal primtives~~
-    * Arrays
+    * ~~Arrays~~ (Robert)
     * ~~Maps~~ (Jose)
 * Expressions
     * Operators
@@ -34,9 +34,9 @@
     * Func Call (Rotem)
 * Blocks & Statments
     * ~~Blocks~~
-    * Spread (should do last)
-    * Jam (Should do last)
-    * Conditional (needs boolean expr)
-    * While (needs boolean expr)
-    * For (needs boolean expr)
+    * Spread (should do last) (Robert)
+    * Jam (Should do last) (Robert)
+    * Conditional (Robert)
+    * While (Robert)
+    * For (Robert)
     * ~~Print~~
