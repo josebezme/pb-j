@@ -40,4 +40,4 @@ alltests.java: test1.java test2.java
 
 .PHONY : clean
 clean :
-	rm -f pbjc scanner.ml *.cmi *.cmo parser.ml parser.mli scanner.ml
+	rm -f pbjc scanner.ml *.cmi *.cmo parser.ml parser.mli parser.output scanner.ml

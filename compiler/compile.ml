@@ -31,7 +31,6 @@ let translate (globals, functions) =
       | Long(id) -> "0L"
       | Double(id) -> "0.0"
       | Boolean(id) -> "false"
-      | _ -> raise (Failure ("initialization not implemented yet."))
 
     (* Returns the java declaration of a datatype *)
     in let rec string_of_data_type = function
@@ -63,7 +62,10 @@ let translate (globals, functions) =
         )
       | MapGet(id, key) -> true
       | ArrayGet(id, idx) -> true
-      | ArrayPut(id, idx, e) -> check_array_index locals e
+      | StmtExpr(e) -> (match e with
+          ArrayPut(id, idx, e) -> check_array_index locals e
+          | _ -> raise (Failure ("Used invalid expression for array index."))
+        )
       | Size(id) -> true
       | _ -> raise (Failure ("Used invalid expression for array index."))
 
@@ -144,7 +146,6 @@ let translate (globals, functions) =
           )
         | _ -> raise (Failure "Assigned boolean to invalid expression.")
         )
-      | _ -> raise (Failure ("Not yet implemented check assignment for this dt."))
 
     in let is_map locals id =
       let rec is_map_helper = function
@@ -159,15 +160,32 @@ let translate (globals, functions) =
       in List.exists (fun dt -> get_dt_name dt = id && is_array_helper dt) locals
 
     (* Basic recursive function for evaluating expressions *)
-    in let rec string_of_expr locals = function
-      | Literal(l) -> string_of_literal l
-      | Assign(s, e) -> 
+    in let rec string_of_stmt_expr locals = function
+      Assign(s, e) ->   
         (* Before we assign, ensure the assignment is valid *)
         let dt = List.find (fun dt -> get_dt_name dt = s) locals in
           if check_assign locals e dt then
             s ^ " = " ^ string_of_expr locals e
           else
             raise (Failure ("Failed check assign."))
+      | ArrayPut(id, idx, e) -> 
+        if check_array_index locals idx then
+                     id
+                     ^ ".set(" 
+                     ^ string_of_expr locals idx 
+                     ^ ".intValue()"
+                     ^ ", " 
+                     ^ string_of_expr locals e 
+                     ^ ")"
+        else
+          raise (Failure "Should have failed before here.")
+      | MapPut(id, key, v) -> if is_map locals id then
+          id ^ ".put(" ^ string_of_expr locals key ^ ", " ^ string_of_expr locals v ^ ")"
+        else
+          raise (Failure (id ^ " is not a valid map type."))
+    and string_of_expr locals = function
+      StmtExpr(e) -> string_of_stmt_expr locals e
+      | Literal(l) -> string_of_literal l
       | MapLiteral(ml) -> into_map ("new Object[]{" ^
           String.concat "," (List.map (fun (d,e) -> string_of_literal d ^ "," ^ string_of_expr locals e) ml) ^ 
           "}")
@@ -182,24 +200,9 @@ let translate (globals, functions) =
           id ^ ".get(" ^ string_of_expr locals idx ^ ".intValue())"(**)
         else
           raise (Failure "Should have failed before here.")
-      | ArrayPut(id, idx, e) -> 
-        if check_array_index locals idx then
-                     id
-                     ^ ".set(" 
-                     ^ string_of_expr locals idx 
-                     ^ ".intValue()"
-                     ^ ", " 
-                     ^ string_of_expr locals e 
-                     ^ ")"
-        else
-          raise (Failure "Should have failed before here.")
       | MapGet(id, key) ->
         if is_map locals id then 
           id ^ ".get(" ^ string_of_expr locals key ^ ")"
-        else
-          raise (Failure (id ^ " is not a valid map type."))
-      | MapPut(id, key, v) -> if is_map locals id then
-          id ^ ".put(" ^ string_of_expr locals key ^ ", " ^ string_of_expr locals v ^ ")"
         else
           raise (Failure (id ^ " is not a valid map type."))
       | MapKeys(id) ->  if is_map locals id then
@@ -223,7 +226,6 @@ let translate (globals, functions) =
           s
         else
           raise (Failure ("Undeclared variable " ^ s))
-		  | Clear(e)            -> string_of_expr locals e
 
     in let rec string_of_stmt (output, locals) = function
       Block(string_of_stmts) -> 
@@ -231,7 +233,7 @@ let translate (globals, functions) =
         in (output ^ "{\n" ^ (fst l) ^ "\n}\n", locals)
       | Print(s) -> (output ^ "System.out.println(" ^ string_of_expr locals s ^ ");\n", locals)
       | Return(e) -> (output ^ "return " ^ string_of_expr locals e ^ ";\n", locals)
-      | Expr(e) -> (output ^ string_of_expr locals e ^ ";\n", locals)
+      | ExprAsStmt(e) -> (output ^ string_of_stmt_expr locals e ^ ";\n", locals)
       | Declare(dt) -> 
         let name = get_dt_name dt in
         if List.exists (fun dt -> get_dt_name dt = name) locals then

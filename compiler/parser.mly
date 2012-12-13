@@ -72,16 +72,19 @@ prim_literal:
   | DUB_LITERAL {DubLiteral($1)}
   | BOOLEAN_LITERAL { BooleanLiteral($1) }
 
-expr:
-  ID { Id($1) }
-  | NULL           { Null } 
+stmt_expr:
+  ARRAY_BEGIN expr RBRACKET ASSIGN expr { ArrayPut($1, $2, $5) }
+  | ID LBRACE expr RBRACE ASSIGN expr { MapPut($1, $3, $6) }
   | ID ASSIGN expr   { Assign($1,$3) }
+
+expr:
+  stmt_expr { StmtExpr($1) }
+  | ID { Id($1) }
+  | NULL           { Null }
   | prim_literal { Literal($1) }
-  | ARRAY_BEGIN expr RBRACKET ASSIGN expr { ArrayPut($1, $2, $5) }
   | ARRAY_BEGIN expr RBRACKET { ArrayGet($1, $2) }
 	| LBRACKET array_list RBRACKET  { ArrayLiteral(List.rev $2) }
   | LBRACE map_entry_list RBRACE { MapLiteral($2) }
-  | ID LBRACE expr RBRACE ASSIGN expr { MapPut($1, $3, $6) }
   | ID LBRACE expr RBRACE { MapGet($1, $3) }
   | ID STAR { MapKeys($1) }
   | ID LBRACE STAR RBRACE { MapValues($1) }
@@ -102,8 +105,8 @@ stmt_list:
 
 stmt:
   vdecl SEMI { Declare($1) }
-  | expr SEMI { Expr($1) }
-  | expr RETURN SEMI { Return($1) }
+  | stmt_expr SEMI { ExprAsStmt($1) }
+  | RETURN expr SEMI { Return($2) }
   | LBRACE stmt_list RBRACE { Block(List.rev $2) }
   | vdecl ASSIGN expr SEMI { DeclareAssign($1, $3) }
   | PRINT LPAREN expr RPAREN SEMI { Print($3) }

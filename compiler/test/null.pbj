@@ -1,4 +1,9 @@
 master(map slaves, array args) {
-	string a <- null;
+	string a <- "Hello";
 	print(a);
+}
+
+doSomething() {
+	print("Did something");
+	-> null;
 }
