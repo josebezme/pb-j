@@ -24,8 +24,9 @@ let parse_error s = (* Called by the parser function on error *)
 %token <string> DUB_LITERAL
 %token EOF
 
-%left  ID LBRACKET RBRACKET
-%left ASSIGN
+%left ID LBRACKET RBRACKET CONCAT
+%right RETURN
+%right ASSIGN
 
 %start program
 %type <Ast.program> program
