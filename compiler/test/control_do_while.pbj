@@ -1,0 +1,5 @@
+master(map slaves, array args) {
+	do{
+		print("success");
+	}while(true);
+}

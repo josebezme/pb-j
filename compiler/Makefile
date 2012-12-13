@@ -13,6 +13,21 @@ scanner.ml : scanner.mll
 %.cmo : %.ml
 	ocamlc -c $<
 
+control_for.java : pbjc
+	pbjc -c test/control_for.pbj
+
+control_if.java : pbjc
+	pbjc -c test/control_if.pbj
+
+control_if_else.java : pbjc
+	pbjc -c test/control_if_else.pbj
+
+control_while.java : pbjc
+	pbjc -c test/control_while.pbj
+
+control_do_while.java : pbjc
+	pbjc -c test/control_do_while.pbj
+
 .PHONY : clean
 clean :
 	rm -f pbjc scanner.ml *.cmi *.cmo parser.ml parser.mli scanner.ml

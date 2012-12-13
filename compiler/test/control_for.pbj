@@ -1,0 +1,5 @@
+master(map slaves, array args) {
+	for(true; true; true) {
+		print("success");
+	}
+}

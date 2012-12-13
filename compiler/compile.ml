@@ -186,6 +186,31 @@ let translate (globals, functions) =
       | Print(s) -> (output ^ "System.out.println(" ^ string_of_expr locals s ^ ");\n", locals)
       | Return(e) -> (output ^ "return " ^ string_of_expr locals e ^ ";\n", locals)
       | Expr(e) -> (output ^ string_of_expr locals e ^ ";\n", locals)
+			| If (p, t, Block([])) -> 
+				(output 
+            ^ "if(" ^ string_of_expr locals p ^ ") "
+            ^ fst (((fun x -> string_of_stmt ("", locals) x) t)), locals)
+			| If (p, t, f) -> 
+        (output 
+            ^ "if(" ^ string_of_expr locals p ^ ") "
+            ^ (fst (string_of_stmt ("", locals) t))
+            ^ "\n else " ^ (fst (string_of_stmt ("", locals) f)), locals )
+      | For (s1, e, e2, b) ->
+				(output 
+				    ^ "for(" 
+						^ (fst (string_of_stmt ("", locals) s1)) 
+            ^ string_of_expr locals e ^ "; " 
+            ^ string_of_expr locals e2 ^ ") " 
+						^ (fst (string_of_stmt ("", locals) b )), locals)
+      | While (e, b) ->
+				(output 
+            ^ "while(" ^ string_of_expr locals e ^ ") " 
+            ^ (fst (string_of_stmt ("", locals) b)), locals )
+      | DoWhile (b, e) ->
+                (output 
+					  ^ "do\n" ^ (fst (string_of_stmt ("", locals) b))
+            ^ "while(" ^ string_of_expr locals e ^ "); " 
+            , locals )
       | Declare(dt) -> 
         let name = get_dt_name dt in
         if List.exists (fun dt -> get_dt_name dt = name) locals then

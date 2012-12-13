@@ -30,6 +30,10 @@ type stmt =
   | Return of expr
   | Declare of data_type
   | DeclareAssign of data_type * expr
+  | If of expr * stmt * stmt
+  | For of stmt * expr * expr * stmt
+  | While of expr * stmt
+  | DoWhile of stmt * expr
   | Expr of expr
 
 type func_decl = {
@@ -73,6 +77,18 @@ let rec string_of_stmt = function
   | Print(str) -> "PRINT (" ^ string_of_expr str ^ ");\n"
   | Return(e) -> "RETURN " ^ string_of_expr e ^ ";\n"
   | Expr(e) -> "EXPR: " ^ string_of_expr e ^ ";\n"
+	| If (p, t, f) -> 
+        "IF " ^ string_of_expr p 
+				    ^ " THEN DO "
+            ^ string_of_stmt t
+            ^ " ELSE DO " ^ string_of_stmt f ^ ";\n"
+  | For (e1, e2, e3, b) -> 
+		   "DECLARE: " ^ string_of_stmt e1 
+	          ^ " AND DO " ^ string_of_stmt b 
+						^ " WHILE " ^ string_of_expr e2 
+						^ " PERFORMING " ^ string_of_expr e3 ^ ";\n"
+  | While (e, b) -> " WHILE " ^ string_of_expr e ^ " DO " ^ string_of_stmt b ^ ";\n"
+  | DoWhile (b, e) -> " DO " ^ string_of_stmt b ^ " WHILE " ^ string_of_expr e ^ ";\n"
   | Declare(dt) -> "DECLARE: " ^ string_of_data_type dt ^ ";\n"
   | DeclareAssign(dt, e) -> "DECLARE: " ^ string_of_data_type dt ^ 
       " AND ASSIGN: " ^ string_of_expr e ^ ";\n"

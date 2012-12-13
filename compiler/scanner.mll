@@ -14,6 +14,11 @@ rule token = parse
 | '|'          { PIPE }
 | '*'          { STAR }
 | '~'          { CONCAT }
+| "for"        { FOR }
+| "while"      { WHILE }
+| "do"         { DO }
+| "if"         { IF }
+| "else"       { ELSE }
 | "map"        { MAP }
 | "array"      { ARRAY }
 | "print"      { PRINT }

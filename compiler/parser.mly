@@ -8,6 +8,7 @@ let parse_error s = (* Called by the parser function on error *)
 %token SEMI COLON LPAREN RPAREN LBRACE RBRACE COMMA
 %token STAR PIPE CONCAT
 %token MAP ARRAY STRING LONG DOUBLE BOOLEAN
+%token IF WHILE FOR ELSE DO
 %token COMMENT
 %token ASSIGN
 %token RETURN
@@ -18,6 +19,18 @@ let parse_error s = (* Called by the parser function on error *)
 %token <string> LONG_LITERAL
 %token <string> DUB_LITERAL
 %token EOF
+
+%nonassoc NOELSE
+%nonassoc ELSE
+
+%right ASSIGN
+
+%left ID LBRACE RBRACE
+
+%left EQ NEQ
+%left LT GT LEQ GEQ
+%left PLUS MINUS
+%left TIMES DIVIDE
 
 %start program
 %type <Ast.program> program
@@ -89,6 +102,12 @@ stmt:
   | LBRACE stmt_list RBRACE { Block(List.rev $2) }
   | vdecl ASSIGN expr SEMI { DeclareAssign($1, $3) }
   | PRINT LPAREN expr RPAREN SEMI { Print($3) }
+  | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
+  | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7) }
+  | FOR LPAREN stmt expr SEMI expr RPAREN stmt
+     { For($3, $4, $6, $8) }
+  | WHILE LPAREN expr RPAREN stmt { While($3, $5) }
+  | DO stmt WHILE LPAREN expr RPAREN SEMI { DoWhile($2, $5) }
   
 
 
