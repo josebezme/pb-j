@@ -77,19 +77,19 @@ and string_of_expr = function
   | Id(s) -> "ID:" ^ s
   | Binop(e1, o, e2) -> "BINOP:" ^ string_of_expr e1 ^ " " ^
       (match o with
-	Add -> "+"
-      | Sub -> "-"
-      | Mult -> "*"
-      | Div -> "/"
-      | Mod -> "%"
-      | Seq -> "="
-      | Peq -> "==="
-      | Greater -> ">"
-      | Geq -> ">="
-      | Less -> "<"
-      | Leq -> "<="
-      | And -> "&&"
-      | Or -> "||") ^ " " ^ string_of_expr e2
+	Add -> "PLUS"
+      | Sub -> "MINUS"
+      | Mult -> "TIMES"
+      | Div -> "DIV"
+      | Mod -> "MOD"
+      | Seq -> "SEQUAL"
+      | Peq -> "PEQUAL"
+      | Greater -> "GT"
+      | Geq -> "GTE"
+      | Less -> "LT"
+      | Leq -> "LTE"
+      | And -> "AND"
+      | Or -> "OR") ^ " " ^ string_of_expr e2
   | ArrayGet(id,idx) -> "ARRAY-" ^ id ^ "-GET[" ^ string_of_expr idx ^ "]"
   | ArrayLiteral(al) -> "ARRAY[" ^ String.concat "," 
         (List.map (fun e -> string_of_expr e ) al) ^ "]"

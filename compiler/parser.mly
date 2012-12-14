@@ -7,7 +7,7 @@ let parse_error s = (* Called by the parser function on error *)
 
 %token NULL
 %token SEMI COLON LPAREN RPAREN LBRACE RBRACE COMMA LBRACKET RBRACKET BAR
-%token STAR PIPE CONCAT
+%token STARSTAR PIPE CONCAT
 %token MAP ARRAY STRING LONG DOUBLE BOOLEAN
 %token PLUS MINUS TIMES DIVIDE MOD
 %token SEQUAL PEQUAL GT GTE LT LTE AND OR
@@ -24,14 +24,15 @@ let parse_error s = (* Called by the parser function on error *)
 %token <string> DUB_LITERAL
 %token EOF
 
+
 %left ID LBRACKET RBRACKET CONCAT
 %right RETURN
 %right ASSIGN
 %left AND OR
-%left SEQUAL PEQUAL
-%left GT GTE LT LTE
+%left SEQUAL PEQUAL GT GTE LT LTE
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
+
 
 %start program
 %type <Ast.program> program
@@ -113,8 +114,8 @@ expr:
 	| LBRACKET array_list RBRACKET  { ArrayLiteral(List.rev $2) }
   | LBRACE map_entry_list RBRACE { MapLiteral($2) }
   | ID LBRACE expr RBRACE { MapGet($1, $3) }
-  | ID STAR { MapKeys($1) }
-  | ID LBRACE STAR RBRACE { MapValues($1) }
+  | ID STARSTAR { MapKeys($1) }
+  | ID LBRACE STARSTAR RBRACE { MapValues($1) }
   | PIPE ID PIPE { Size($2) }
   | expr CONCAT expr { Concat($1, $3) }
 

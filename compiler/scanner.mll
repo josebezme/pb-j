@@ -14,7 +14,7 @@ rule token = parse
 | ':'          { COLON }
 | ','          { COMMA }
 | '|'          { PIPE }
-| '*'          { STAR }
+| "**"         { STARSTAR }
 | '~'          { CONCAT }
 | '+'          { PLUS }
 | '-'          { MINUS }

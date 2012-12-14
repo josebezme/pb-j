@@ -189,21 +189,23 @@ let translate (globals, functions) =
       | Literal(l) -> string_of_literal l
       | Binop (e1, o, e2) -> 
 	  (* We need type checking here *)
-	  string_of_expr locals e1 ^ 
-	  (match o with
-	    Add -> "+"
-	  | Sub -> "-"
-	  | Mult -> "*"
-	  | Div -> "/"
-	  | Mod -> "%"
-	  | Seq -> "="
-	  | Peq -> ".equals("
-	  | Greater -> ">"
-	  | Geq -> ">="
-	  | Less -> "<"
-	  | Leq -> "<="
-	  | And -> "&&"
-	  | Or -> "||") ^ string_of_expr locals e2
+	  let line = string_of_expr locals e1 ^ 
+	    (match o with
+	      Add -> "+"
+	    | Sub -> "-"
+	    | Mult -> "*"
+	    | Div -> "/"
+	    | Mod -> "%"
+	    | Seq -> "=="
+	    | Peq -> ".equals("
+	    | Greater -> ">"
+	    | Geq -> ">="
+	    | Less -> "<"
+	    | Leq -> "<="
+	    | And -> "&&"
+	    | Or -> "||") in
+	  if o = Peq then line ^ string_of_expr locals e2 ^ ")"
+	  else line ^ string_of_expr locals e2
       | MapLiteral(ml) -> into_map ("new Object[]{" ^
           String.concat "," (List.map (fun (d,e) -> string_of_literal d ^ "," ^ string_of_expr locals e) ml) ^ 
           "}")
