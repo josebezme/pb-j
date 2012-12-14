@@ -187,6 +187,25 @@ let translate (globals, functions) =
     and string_of_expr locals = function
       StmtExpr(e) -> string_of_stmt_expr locals e
       | Literal(l) -> string_of_literal l
+      | Binop (e1, o, e2) -> 
+	  (* We need type checking here *)
+	  let line = string_of_expr locals e1 ^ 
+	    (match o with
+	      Add -> "+"
+	    | Sub -> "-"
+	    | Mult -> "*"
+	    | Div -> "/"
+	    | Mod -> "%"
+	    | Seq -> "=="
+	    | Peq -> ".equals("
+	    | Greater -> ">"
+	    | Geq -> ">="
+	    | Less -> "<"
+	    | Leq -> "<="
+	    | And -> "&&"
+	    | Or -> "||") in
+	  if o = Peq then line ^ string_of_expr locals e2 ^ ")"
+	  else line ^ string_of_expr locals e2
       | MapLiteral(ml) -> into_map ("new Object[]{" ^
           String.concat "," (List.map (fun (d,e) -> string_of_literal d ^ "," ^ string_of_expr locals e) ml) ^ 
           "}")

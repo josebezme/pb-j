@@ -5,12 +5,12 @@ let parse_error s = (* Called by the parser function on error *)
   flush stdout
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET COMMA BAR
-%token MAP ARRAY STRING
-%token NULL
-%token SEMI COLON LPAREN RPAREN LBRACE RBRACE COMMA LBRACKET RBRACKET
-%token STAR PIPE CONCAT
+%token SEMI COLON LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET COMMA BAR
 %token MAP ARRAY STRING LONG DOUBLE BOOLEAN
+%token NULL
+%token STARSTAR PIPE CONCAT
+%token PLUS MINUS TIMES DIVIDE MOD
+%token SEQUAL PEQUAL GT GTE LT LTE AND OR
 %token COMMENT
 %token ASSIGN
 %token RETURN
@@ -27,6 +27,10 @@ let parse_error s = (* Called by the parser function on error *)
 %left ID LBRACKET RBRACKET CONCAT
 %right RETURN
 %right ASSIGN
+%left AND OR
+%left SEQUAL PEQUAL GT GTE LT LTE
+%left PLUS MINUS
+%left TIMES DIVIDE MOD
 
 %start program
 %type <Ast.program> program
@@ -89,14 +93,27 @@ stmt_expr:
 expr:
   stmt_expr { StmtExpr($1) }
   | ID { Id($1) }
+  | expr PLUS expr { Binop($1, Add, $3) }
+  | expr MINUS expr { Binop($1, Sub, $3) }
+  | expr TIMES expr { Binop($1, Mult, $3) }
+  | expr DIVIDE expr { Binop($1, Div, $3) }
+  | expr MOD expr { Binop($1, Mod, $3) }
+  | expr SEQUAL expr { Binop($1, Seq, $3) }
+  | expr PEQUAL expr { Binop($1, Peq, $3) }
+  | expr GT expr { Binop($1, Greater, $3) }
+  | expr GTE expr { Binop($1, Geq, $3) }
+  | expr LT expr { Binop($1, Less, $3) }
+  | expr LTE expr { Binop($1, Leq, $3) }
+  | expr AND expr { Binop($1, And, $3) }
+  | expr OR expr { Binop($1, Or, $3) }
   | NULL           { Null }
   | prim_literal { Literal($1) }
   | ARRAY_BEGIN expr RBRACKET { ArrayGet($1, $2) }
 	| LBRACKET array_list RBRACKET  { ArrayLiteral(List.rev $2) }
   | LBRACE map_entry_list RBRACE { MapLiteral($2) }
   | ID LBRACE expr RBRACE { MapGet($1, $3) }
-  | ID STAR { MapKeys($1) }
-  | ID LBRACE STAR RBRACE { MapValues($1) }
+  | ID STARSTAR { MapKeys($1) }
+  | ID LBRACE STARSTAR RBRACE { MapValues($1) }
   | PIPE ID PIPE { Size($2) }
   | expr CONCAT expr { Concat($1, $3) }
 

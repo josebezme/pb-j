@@ -1,3 +1,5 @@
+type op = Add | Sub | Mult | Div | Mod | Seq | Peq | Greater | Geq | Less | Leq | And | Or
+
 type data_type =
   String  of string
   | Map   of string
@@ -22,6 +24,7 @@ and expr =
   StmtExpr of stmt_expr
   | Id of string
   | Literal of literal
+  | Binop of expr * op * expr
   | ArrayGet      of string * expr
   | ArrayLiteral  of expr list
   | Null
@@ -72,6 +75,21 @@ and string_of_expr = function
   StmtExpr(e) -> string_of_stmt_expr e
   | Literal(l) -> string_of_literal l
   | Id(s) -> "ID:" ^ s
+  | Binop(e1, o, e2) -> "BINOP:" ^ string_of_expr e1 ^ " " ^
+      (match o with
+	Add -> "PLUS"
+      | Sub -> "MINUS"
+      | Mult -> "TIMES"
+      | Div -> "DIV"
+      | Mod -> "MOD"
+      | Seq -> "SEQUAL"
+      | Peq -> "PEQUAL"
+      | Greater -> "GT"
+      | Geq -> "GTE"
+      | Less -> "LT"
+      | Leq -> "LTE"
+      | And -> "AND"
+      | Or -> "OR") ^ " " ^ string_of_expr e2
   | ArrayGet(id,idx) -> "ARRAY-" ^ id ^ "-GET[" ^ string_of_expr idx ^ "]"
   | ArrayLiteral(al) -> "ARRAY[" ^ String.concat "," 
         (List.map (fun e -> string_of_expr e ) al) ^ "]"
