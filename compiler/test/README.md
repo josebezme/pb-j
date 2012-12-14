@@ -9,7 +9,7 @@
         * ~~double~~ (Fred)
         * ~~string~~
         * ~~boolean~~ (Rotem) 
-        * null (Robert) 
+        * ~~null (Robert)~~ 
     * Collection Types
         * ~~Map~~ (Jose)
         * ~~Array~~ (Robert) 
