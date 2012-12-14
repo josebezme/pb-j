@@ -36,7 +36,7 @@
     * ~~Blocks~~
     * Spread (should do last) (Robert)
     * Jam (Should do last) (Robert)
-    * Conditional (Robert)
-    * While (Robert)
-    * For (Robert)
+    * ~~Conditional (Robert)~~
+    * ~~While (Robert)~~
+    * ~~For (Robert)~~
     * ~~Print~~
