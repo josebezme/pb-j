@@ -9,7 +9,7 @@
         * ~~double~~ (Fred)
         * ~~string~~
         * ~~boolean~~ (Rotem) 
-        * null (Robert) 
+        * ~~null (Robert)~~ 
     * Collection Types
         * ~~Map~~ (Jose)
         * ~~Array~~ (Robert) 
@@ -31,12 +31,12 @@
         * Logical operators (Hahn)
         * ~~String concat~~ (Jose)
     * ~~Assignment~~
-    * Func Call (Rotem)
+    * ~~Func Call (Rotem)~~
 * Blocks & Statments
     * ~~Blocks~~
     * Spread (should do last) (Robert)
     * Jam (Should do last) (Robert)
-    * Conditional (Robert)
-    * While (Robert)
-    * For (Robert)
+    * ~~Conditional (Robert)~~
+    * ~~While (Robert)~~
+    * ~~For (Robert)~~
     * ~~Print~~
