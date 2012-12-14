@@ -31,7 +31,7 @@
         * Logical operators (Hahn)
         * ~~String concat~~ (Jose)
     * ~~Assignment~~
-    * Func Call (Rotem)
+    * ~~Func Call (Rotem)~~
 * Blocks & Statments
     * ~~Blocks~~
     * Spread (should do last) (Robert)
