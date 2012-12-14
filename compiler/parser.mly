@@ -39,11 +39,9 @@ program:
 
 fdecl:
 	ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
-	{{
-		fname = $1;
-		formals = $3;
-		body = List.rev $6
-		}}
+	{{ fname = Void($1); formals = $3; body = List.rev $6 }}
+  | vdecl LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
+    {{ fname = $1; formals = $3; body = List.rev $6 }}
 
 formals_opt:
   { [] }

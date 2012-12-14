@@ -1,26 +1,27 @@
 open Ast
 
 type env = {
-    function_index : string list; 
     global_index   : string list;
   }
 
 let translate (globals, functions) =
-
-  (* Translate a function with given env *)
-  let translate_helper env fdecl =
-    (* This just returns the string name for a data type *)
+  
+  (* This just returns the string name for a data type *)
     let rec get_dt_name = function
       String(id) -> id
       | Map(id) -> id
       | Array(id) -> id
-      | Boolean(id) -> id 
+      | Boolean(id) -> id
       | Double(id) -> id
       | Long(id) -> id
+      | Void(id) -> id
+
+  (* Translate a function with given env *)
+  in let translate_helper env fdecl =
 
     (* This is a utility method for turning a map literal into a valid java expr
         The method it's self is in the backend code. *)
-    in let into_map str = 
+    let into_map str = 
       "plt.pbj.util.MapUtil.toMap(" ^ str ^ ")"
 
     (* Returns the default java initialization for a data type. *)
@@ -31,6 +32,7 @@ let translate (globals, functions) =
       | Long(id) -> "0L"
       | Double(id) -> "0.0"
       | Boolean(id) -> "false"
+      | _ -> raise(Failure "No default initialization for this data_type.")
 
     (* Returns the java declaration of a datatype *)
     in let rec string_of_data_type = function
@@ -40,6 +42,7 @@ let translate (globals, functions) =
       | Boolean(id) -> "Boolean " ^ id
       | Long(id) -> "Long " ^ id
       | Double(id) -> "Double " ^ id
+      | Void(id) -> "void " ^ id
 
     (* Turns a literal object into a java expr *)
     in let rec string_of_literal = function
@@ -69,15 +72,36 @@ let translate (globals, functions) =
       | Size(id) -> true
       | _ -> raise (Failure ("Used invalid expression for array index."))
 
+    in let rec does_func_exist id = function
+      [] -> false
+      | hd :: tl -> 
+        if get_dt_name(hd.fname) = id then
+          true
+        else
+          does_func_exist id tl
+
+    in let rec get_func_dt id functions =
+      if does_func_exist id functions then
+        (match functions with 
+          [] -> raise(Failure ("Failed to find func" ^ id))
+          | hd :: tl ->
+            if get_dt_name(hd.fname) = id then
+              hd.fname
+            else
+              get_func_dt id tl
+      ) else 
+        raise(Failure("Function " ^ id ^ " does not exist."))
+
+    in let rec match_string_dt = function
+      String(s) -> true
+      | _ -> raise (Failure ("Assigned string to invalid data type"))
+
     (* Checks for invalid assignments of data types *)
-    in let rec check_assign locals e = function
+    in let rec check_assign locals e dt = match dt with
       (*  CHECK ASSIGN FOR STRING ***********************************************)
       String(es) -> (match e with
         (* if it's an id get the data type from locals list *)
-        Id(id) -> (match (get_dt_from_name id locals) with
-            String(s) -> true
-            | _ -> raise (Failure ("Assigned string to invalid data type: " ^ id))
-          )
+        Id(id) -> match_string_dt (get_dt_from_name id locals)
         | Literal(l) -> 
           ( (* Check the assignment of a string to an id *)
           match l with 
@@ -86,6 +110,12 @@ let translate (globals, functions) =
           )
         | Concat(e1, e2) -> true
         | MapLiteral(ml) -> raise (Failure ("Assigned string to map literal."))
+        | StmtExpr(e) -> (match e with
+          FunctionCall(id,e) -> match_string_dt (get_func_dt id functions)
+          | MapPut(id, key, e) -> check_assign locals e dt
+          | ArrayPut(id, idx, e) -> check_assign locals e dt
+          | Assign(id, e) -> check_assign locals e dt
+          )
         | _ -> raise (Failure ("Assigned string to invalid expression."))
         )
       (* CHECK ASSIGN FOR ARRAY **********************************************)
@@ -146,6 +176,7 @@ let translate (globals, functions) =
           )
         | _ -> raise (Failure "Assigned boolean to invalid expression.")
         )
+      | _ -> raise (Failure "Invalid assignment")
 
     in let is_map locals id =
       let rec is_map_helper = function
@@ -184,6 +215,7 @@ let translate (globals, functions) =
         else
           raise (Failure (id ^ " is not a valid map type."))
       | FunctionCall(s,e) -> s ^ "("  ^  String.concat "," (List.map (string_of_expr locals) e) ^ ")" 
+
     and string_of_expr locals = function
       StmtExpr(e) -> string_of_stmt_expr locals e
       | Literal(l) -> string_of_literal l
@@ -251,12 +283,11 @@ let translate (globals, functions) =
           else
             raise (Failure ("Failed check assign on declare assign."))
 
-
-    in "\npublic static void " ^
-    fdecl.fname ^ "(" ^ String.concat ", " (List.map string_of_data_type fdecl.formals) ^ ")"
+    in "\npublic static " ^
+    (string_of_data_type fdecl.fname) ^ "(" ^ String.concat ", " (List.map string_of_data_type fdecl.formals) ^ ")"
       ^ fst (string_of_stmt ("", []) (Block fdecl.body)) ^ "\n"
+
   in let env = { 
-      function_index = [];
       global_index = []
     }
   (* The next line is the heart of it ans is where this all really starts *)

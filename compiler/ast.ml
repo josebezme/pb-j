@@ -5,6 +5,7 @@ type data_type =
   | Boolean of string
   | Long of string
   | Double of string
+  | Void of string
 
 type literal = 
   | StringLiteral of string
@@ -41,7 +42,7 @@ type stmt =
   | ExprAsStmt         of stmt_expr
 
 type func_decl = {
-    fname : string;
+    fname : data_type;
     formals : data_type list;
     body : stmt list;
   }
@@ -55,6 +56,7 @@ let rec string_of_data_type = function
   | Boolean(s) -> "BOOLEAN-" ^ s
   | Long(s) -> "LONG-" ^ s
   | Double(s) -> "DOUBLE-" ^ s 
+  | Void(s) -> "VOID-" ^ s
 
 let rec string_of_literal = function
   StringLiteral(s) -> "\"" ^ s ^ "\""
@@ -95,7 +97,7 @@ let rec string_of_stmt = function
       " AND ASSIGN: " ^ string_of_expr e ^ ";\n"
 
 let string_of_fdecl fdecl =
-  "FUNCTION " ^ fdecl.fname ^ "(" ^ 
+  "FUNCTION " ^ string_of_data_type fdecl.fname ^ "(" ^ 
     String.concat "," (List.map string_of_data_type fdecl.formals) ^ 
     ")\n{\n" ^
   String.concat "" (List.map string_of_stmt fdecl.body) ^
