@@ -50,7 +50,7 @@ type func_decl = {
     body : stmt list;
   }
 
-type program = data_type list * func_decl list
+type program = (data_type * literal) list * func_decl list
 
 let rec string_of_data_type = function
   String(s) -> "STRING-" ^ s
@@ -123,8 +123,13 @@ let string_of_fdecl fdecl =
 
 let string_of_vdecl id = "long " ^ id ^ ";\n"
 
+let string_of_globals globals = 
+  "GLOBALS " ^ string_of_data_type (fst globals) ^ " = " ^ string_of_literal (snd globals)   
+
 let string_of_program (vars, funcs) =
-  "Vars: \n" ^ String.concat ";\n" (List.map string_of_data_type vars) ^ "\n" ^
+  "Vars: \n" ^ String.concat ";\n" (List.map string_of_globals vars) ^ "\n" ^
   "Funcs: \n" ^ String.concat "\n" (List.map string_of_fdecl funcs)
+
+
 
 
