@@ -1,9 +1,5 @@
 open Ast
 
-type env = {
-    global_index   : string list;
-  }
-
 let translate (globals, functions) =
   
   (* This just returns the string name for a data type *)
@@ -15,6 +11,35 @@ let translate (globals, functions) =
       | Double(id) -> id
       | Long(id) -> id
       | Void(id) -> id
+
+    (* Returns the java declaration of a datatype *)
+  in let rec string_of_data_type = function
+      String(id) -> "String " ^ id
+      | Map(id) -> "Map<Object, Object> " ^ id
+      | Array(id) -> "List<Object> " ^ id
+      | Boolean(id) -> "Boolean " ^ id
+      | Long(id) -> "Long " ^ id
+      | Double(id) -> "Double " ^ id
+      | Void(id) -> "void " ^ id
+
+   (* Turns a literal object into a java expr *)
+    in let rec string_of_literal = function
+      StringLiteral(s) -> "\"" ^ s ^ "\""
+      | DubLiteral(s) -> "new Double(" ^ s ^ ")"
+      | LongLiteral(s) -> "new Long(" ^ s ^ ")"
+      | BooleanLiteral(s) -> string_of_bool s
+
+  in let rec check_globals id globals = match globals with
+    [] -> false
+    | hd :: tl -> 
+        if get_dt_name(fst hd) = id then
+          true
+        else
+          check_globals id tl
+
+    (* Translate a global *)
+  in let translate_globals global =
+    "public static final " ^ string_of_data_type (fst global) ^ " = " ^ string_of_literal (snd global) ^ "; \n"  
 
   (* Translate a function with given env *)
   in let translate_helper fdecl =
@@ -33,23 +58,6 @@ let translate (globals, functions) =
       | Double(id) -> "0.0"
       | Boolean(id) -> "false"
       | _ -> raise(Failure "No default initialization for this data_type.")
-
-    (* Returns the java declaration of a datatype *)
-    in let rec string_of_data_type = function
-      String(id) -> "String " ^ id
-      | Map(id) -> "Map<Object, Object> " ^ id
-      | Array(id) -> "List<Object> " ^ id
-      | Boolean(id) -> "Boolean " ^ id
-      | Long(id) -> "Long " ^ id
-      | Double(id) -> "Double " ^ id
-      | Void(id) -> "void " ^ id
-
-    (* Turns a literal object into a java expr *)
-    in let rec string_of_literal = function
-      StringLiteral(s) -> "\"" ^ s ^ "\""
-      | DubLiteral(s) -> "new Double(" ^ s ^ ")"
-      | LongLiteral(s) -> "new Long(" ^ s ^ ")"
-      | BooleanLiteral(s) -> string_of_bool s
 
     in let get_dt_from_name name locals =
       List.find (fun dt -> get_dt_name dt = name) locals
@@ -92,107 +100,112 @@ let translate (globals, functions) =
       ) else 
         raise(Failure("Function " ^ id ^ " does not exist."))
 
-    in let rec match_string_dt = function
-      String(s) -> true
-      | _ -> raise (Failure ("Assigned string to invalid data type"))
-
-    in let rec match_array_dt = function
-      Array(s) -> true
-      | _ -> raise (Failure ("Assigned array to invalid data type"))
-
-    in let rec match_map_dt = function
-      Map(s) -> true
-      | _ -> raise (Failure ("Assigned array to invalid data type"))
-
-    in let rec match_long_dt = function
-      Long(s) -> true
-      | _ -> raise (Failure ("Assigned long to invalid data type"))
-
-    in let rec match_double_dt = function
-      Double(s) -> true
-      | _ -> raise (Failure ("Assigned double to invalid data type"))
-
-    in let rec match_boolean_dt = function
-      Boolean(s) -> true
-      | _ -> raise (Failure ("Assigned boolean to invalid data type"))
-
-    in let rec match_data_type locals match_func check_func dt = function
-      FunctionCall(id,e) -> match_func (get_func_dt id functions)
-      | MapPut(id, key, e) -> check_func locals e dt
-      | ArrayPut(id, idx, e) -> check_func locals e dt
-      | Assign(id, e) -> check_func locals e dt
+    
 
     (* Checks for invalid assignments of data types *)
-    in let rec check_assign locals e dt = match dt with
-      (*  CHECK ASSIGN FOR STRING ***********************************************)
-      String(es) -> (match e with
-        (* if it's an id get the data type from locals list *)
-        Id(id) -> match_string_dt (get_dt_from_name id locals)
-        | Literal(l) -> 
-          ( (* Check the assignment of a string to an id *)
-          match l with 
-            StringLiteral(sl) -> true
-            | _ -> raise (Failure ("Assigned string to non-string literal."))
+    in let check_assign locals e dt no_raise =
+      let rec match_string_dt = function
+      String(s) -> true
+      | _ -> false
+
+      in let rec match_array_dt = function
+        Array(s) -> true
+        | _ -> if no_raise then false
+          else raise (Failure ("Assigned array to invalid data type"))
+
+      in let rec match_map_dt = function
+        Map(s) -> true
+        | _ -> if no_raise then false
+          else raise (Failure ("Assigned array to invalid data type"))
+
+      in let rec match_long_dt = function
+        Long(s) -> true
+        | _ -> if no_raise then false
+          else raise (Failure ("Assigned long to invalid data type"))
+
+      in let rec match_double_dt = function
+        Double(s) -> true
+        | _ -> if no_raise then false
+          else raise (Failure ("Assigned double to invalid data type"))
+
+      in let rec match_boolean_dt = function
+        Boolean(s) -> true
+        | _ -> if no_raise then false
+          else raise (Failure ("Assigned boolean to invalid data type"))
+
+      in let rec match_data_type locals match_func check_func dt = function
+        FunctionCall(id,e) -> match_func (get_func_dt id functions)
+        | MapPut(id, key, e) -> check_func locals e dt 
+        | ArrayPut(id, idx, e) -> check_func locals e dt 
+        | Assign(id, e) -> check_func locals e dt 
+
+      in let rec check_assign_helper locals e dt = match dt with
+        (*  CHECK ASSIGN FOR STRING ***********************************************)
+        String(es) -> (match e with
+          (* if it's an id get the data type from locals list *)
+          Id(id) -> match_string_dt (get_dt_from_name id locals)
+          | Literal(l) -> 
+            ( (* Check the assignment of a string to an id *)
+            match l with 
+              StringLiteral(sl) -> true
+              | _ ->  if no_raise then false else raise (Failure ("Assigned string to non-string literal."))
+            )
+          | Concat(e1, e2) -> true
+          | StmtExpr(e) -> match_data_type locals match_string_dt check_assign_helper dt e 
+          | _ ->  if no_raise then false else raise (Failure ("Assigned string to invalid expression."))
           )
-        | Concat(e1, e2) -> true
-        | MapLiteral(ml) -> raise (Failure ("Assigned string to map literal."))
-        | StmtExpr(e) -> match_data_type locals match_string_dt check_assign dt e
-        | _ -> raise (Failure ("Assigned string to invalid expression."))
-        )
-      (* CHECK ASSIGN FOR ARRAY **********************************************)
-      | Array(id) -> (match e with
-        Id(id) -> match_array_dt (get_dt_from_name id locals)
-        | ArrayLiteral(a) -> true
-        | MapValues(id) -> true
-        | MapKeys(id) -> true
-        | StmtExpr(e) -> match_data_type locals match_array_dt check_assign dt e
-        | _ -> raise (Failure ("Assigned array to invalid expression."))
-        )
-      (*  CHECK ASSIGN FOR MAP ***********************************************)
-      | Map(id) -> (match e with
-        Id(id) -> match_map_dt (get_dt_from_name id locals)
-        | MapLiteral(ml) -> true
-        | MapGet(id, key) -> true
-        | ArrayGet(id, idx) -> true
-        | StmtExpr(e) -> match_data_type locals match_map_dt check_assign dt e
-        | _ -> raise (Failure "Asigned map to invalid expr.")
-        ) 
-      (* CHECK ASSIGN FOR LONG ***********************************************)
-      | Long(id) -> (match e with
-        Id(id) -> (match (get_dt_from_name id locals) with
-            Long(s) -> true
-            | _ -> raise (Failure ("Assigned long to invalid non-long id " ^ id))
+        (* CHECK ASSIGN FOR ARRAY **********************************************)
+        | Array(id) -> (match e with
+          Id(id) -> match_array_dt (get_dt_from_name id locals)
+          | ArrayLiteral(a) -> true
+          | MapValues(id) -> true
+          | MapKeys(id) -> true
+          | StmtExpr(e) -> match_data_type locals match_array_dt check_assign_helper dt e
+          | _ -> if no_raise then false else raise (Failure ("Assigned array to invalid expression."))
           )
-        | Literal(l) -> (match l with
-            LongLiteral(ll) -> true
-            | _ -> raise (Failure "Assigned long to non-long literal")
+        (*  CHECK ASSIGN FOR MAP ***********************************************)
+        | Map(id) -> (match e with
+          Id(id) -> match_map_dt (get_dt_from_name id locals)
+          | MapLiteral(ml) -> true
+          | MapGet(id, key) -> true
+          | ArrayGet(id, idx) -> true
+          | StmtExpr(e) -> match_data_type locals match_map_dt check_assign_helper dt e
+          | _ -> if no_raise then false else raise (Failure "Asigned map to invalid expr.")
+          ) 
+        (* CHECK ASSIGN FOR LONG ***********************************************)
+        | Long(id) -> (match e with
+          Id(id) -> match_long_dt (get_dt_from_name id locals)
+          | Literal(l) -> (match l with
+              LongLiteral(ll) -> true
+              | _ -> if no_raise then false else raise (Failure "Assigned long to non-long literal")
+            )
+          | Size(id) -> true
+          | StmtExpr(e) -> match_data_type locals match_long_dt check_assign_helper dt e
+          | _ -> if no_raise then false else raise (Failure "Assigned long to invalid expression.")
           )
-        | Size(id) -> true
-        | StmtExpr(e) -> match_data_type locals match_long_dt check_assign dt e
-        | _ -> raise (Failure "Assigned long to invalid expression.")
-        )
-      (* CHECK ASSIGN FOR DOUBLE ********************************************)
-      | Double(id) -> (match e with
-        Id(id) -> match_double_dt (get_dt_from_name id locals) 
-        | Literal(l) -> (match l with
-            DubLiteral(dl) -> true
-            | LongLiteral(ll) -> true
-            | _ -> raise (Failure "Assigned double to invalid literal.")
+        (* CHECK ASSIGN FOR DOUBLE ********************************************)
+        | Double(id) -> (match e with
+          Id(id) -> match_double_dt (get_dt_from_name id locals) 
+          | Literal(l) -> (match l with
+              DubLiteral(dl) -> true
+              | LongLiteral(ll) -> true
+              | _ ->  if no_raise then false else raise (Failure "Assigned double to invalid literal.")
+            )
+          | StmtExpr(e) -> match_data_type locals match_double_dt check_assign_helper dt e
+          | _ -> if no_raise then false else raise (Failure "Assigned double to invalid expression.")
           )
-        | StmtExpr(e) -> match_data_type locals match_double_dt check_assign dt e
-        | _ -> raise (Failure "Assigned double to invalid expression.")
-        )
-      (* CHECK ASSIGN FOR BOOLEAN ******************************************)
-      | Boolean(id) -> (match e with
-        Id(id) -> match_boolean_dt (get_dt_from_name id locals)
-        | Literal(l) -> (match l with
-            BooleanLiteral(b) -> true
-            | _ -> raise (Failure "Assigned boolean to non-boolean literal.")
+        (* CHECK ASSIGN FOR BOOLEAN ******************************************)
+        | Boolean(id) -> (match e with
+          Id(id) -> match_boolean_dt (get_dt_from_name id locals)
+          | Literal(l) -> (match l with
+              BooleanLiteral(b) -> true
+              | _ -> if no_raise then false else raise (Failure "Assigned boolean to non-boolean literal.")
+            )
+          | StmtExpr(e) -> match_data_type locals match_boolean_dt check_assign_helper dt e
+          | _ -> if no_raise then false else raise (Failure "Assigned double to invalid expression.")
           )
-        | StmtExpr(e) -> match_data_type locals match_boolean_dt check_assign dt e
-        | _ -> raise (Failure "Assigned boolean to invalid expression.")
-        )
-      | _ -> raise (Failure "Invalid assignment")
+        | _ -> if no_raise then false else raise (Failure "Invalid assignment")
+      in check_assign_helper locals e dt
 
     in let is_map locals id =
       let rec is_map_helper = function
@@ -211,7 +224,7 @@ let translate (globals, functions) =
       Assign(s, e) ->   
         (* Before we assign, ensure the assignment is valid *)
         let dt = List.find (fun dt -> get_dt_name dt = s) locals in
-          if check_assign locals e dt then
+          if check_assign locals e dt false then
             s ^ " = " ^ string_of_expr locals e
           else
             raise (Failure ("Failed check assign."))
@@ -235,6 +248,55 @@ let translate (globals, functions) =
     and string_of_expr locals = function
       StmtExpr(e) -> string_of_stmt_expr locals e
       | Literal(l) -> string_of_literal l
+      | Binop (e1, o, e2) -> 
+	  let dt_long = Long("Temp1") in
+	  let dt_doub = Double("Temp2") in
+	  let dt_str = String("Temp3") in
+	  let dt_bool = Boolean("Temp4") in
+	  let dt_array = Array("Temp5") in
+	  let dt_map = Map("Temp6") in
+	  let check_binop_type locals =
+	    (* Expressions must be booleans for logical ops *)
+	    if (o = And || o = Or) then 
+	      check_assign locals e1 dt_bool true && check_assign locals e2 dt_bool true
+	    (* First expression must be an object for .equals() *)
+	    else if o = Peq then
+	      check_assign locals e1 dt_str true || check_assign locals e1 dt_array true || check_assign locals e1 dt_map true
+	    (* Expression must be the same type for == *)
+	    else if o = Seq then
+	      (check_assign locals e1 dt_long true && check_assign locals e2 dt_long true) ||
+	      (check_assign locals e1 dt_doub true && check_assign locals e2 dt_doub true) ||
+	      (check_assign locals e1 dt_str true && check_assign locals e2 dt_str true) ||
+	      (check_assign locals e1 dt_bool true && check_assign locals e2 dt_bool true) ||
+	      (check_assign locals e1 dt_array true && check_assign locals e2 dt_array true) ||
+	      (check_assign locals e1 dt_map true && check_assign locals e2 dt_map true)
+            (* Expressions must be long or double for arith and comp ops *)
+	    else 
+	      (check_assign locals e1 dt_long true || check_assign locals e1 dt_doub true) 
+		&& (check_assign locals e2 dt_long true || check_assign locals e2 dt_doub true)
+	  in if check_binop_type locals then
+	    let line = string_of_expr locals e1 ^ 
+	      (match o with
+		Add -> "+"
+	      | Sub -> "-"
+	      | Mult -> "*"
+	      | Div -> "/"
+	      | Mod -> "%"
+	      | Seq -> "=="
+	      | Peq -> ".equals("
+	      | Greater -> ">"
+	      | Geq -> ">="
+	      | Less -> "<"
+	      | Leq -> "<="
+	      | And -> "&&"
+	      | Or -> "||") in
+	    if o = Peq then line ^ string_of_expr locals e2 ^ ")"
+	    else line ^ string_of_expr locals e2
+	  else 
+	    if (o = And || o = Or) then raise (Failure ("Invalid Type: Both expressions must be type Boolean"))
+		else if o = Seq then raise (Failure ("Invalid Type: Both expressions must be the same type"))
+		    else if o = Peq then raise (Failure ("Invalid Type: First expression must be type String, Array, or Map"))
+			else raise (Failure ("Invalid Type: Both expressions must be type Long or Double"))
       | MapLiteral(ml) -> into_map ("new Object[]{" ^
           String.concat "," (List.map (fun (d,e) -> string_of_literal d ^ "," ^ string_of_expr locals e) ml) ^ 
           "}")
@@ -273,6 +335,9 @@ let translate (globals, functions) =
         (* Ensures that the used id is within the current scope *)
         if(List.exists (fun dt -> get_dt_name dt = s) locals) then
           s
+         else
+        if (check_globals s globals) then
+          s
         else
           raise (Failure ("Undeclared variable " ^ s))
 
@@ -294,7 +359,7 @@ let translate (globals, functions) =
         if List.exists (fun dt -> get_dt_name dt = name) locals then
           raise (Failure ("Variable " ^ name ^ " has already been declared."))
         else
-          if check_assign locals e dt then
+          if check_assign locals e dt false then
             (output ^ string_of_data_type dt ^ " = " ^ string_of_expr locals e ^ ";\n", dt :: locals)
           else
             raise (Failure ("Failed check assign on declare assign."))
@@ -333,9 +398,6 @@ let translate (globals, functions) =
 
   (* The next line is the heart of it ans is where this all really starts *)
   in if check_all_are_true (List.map check_return_statements functions) then 
-    String.concat "\n" (List.map (translate_helper) functions)
+    String.concat "\n" (List.map (translate_helper) functions) ^ String.concat "" (List.map (translate_globals) globals) 
   else
     raise(Failure("Functions had invalid returns."))
-
-
-

@@ -7,16 +7,17 @@
     * Primitive Types
         * ~~long~~ (Fred)
         * ~~double~~ (Fred)
-        * ~~string~~
+        * ~~string~~(Rotem)
         * ~~boolean~~ (Rotem) 
         * ~~null (Robert)~~ 
     * Collection Types
         * ~~Map~~ (Jose)
-        * ~~Array~~ (Robert) 
+        * ~~Array~~ (Robert)
+    * ~~Globals~~ (Rotem)
 * Lexical
     * ~~Comments~~
     * Operators (Hahn)
-        * PBJ Op
+        * PBJ Op (Robert)
         * ~~Assignment operator~~ (Jose)
         * ~~Return~~ (Hahn)
     * ~~Literal Types~~
@@ -25,7 +26,8 @@
     * ~~Maps~~ (Jose)
 * Expressions
     * Operators
-        * Arithmetic (Fred)
+        * Arithmetic (Hanh)
+          * Compiler checking for binop.
         * Comparison (Fred)
         * Inequalities (FRED)
         * Logical operators (Hahn)
@@ -40,3 +42,4 @@
     * ~~While (Robert)~~
     * ~~For (Robert)~~
     * ~~Print~~
+

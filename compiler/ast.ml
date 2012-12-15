@@ -1,3 +1,5 @@
+type op = Add | Sub | Mult | Div | Mod | Seq | Peq | Greater | Geq | Less | Leq | And | Or
+
 type data_type =
   String  of string
   | Map   of string
@@ -23,6 +25,7 @@ and expr =
   StmtExpr of stmt_expr
   | Id of string
   | Literal of literal
+  | Binop of expr * op * expr
   | ArrayGet      of string * expr
   | ArrayLiteral  of expr list
   | Null
@@ -47,7 +50,7 @@ type func_decl = {
     body : stmt list;
   }
 
-type program = data_type list * func_decl list
+type program = (data_type * literal) list * func_decl list
 
 let rec string_of_data_type = function
   String(s) -> "STRING-" ^ s
@@ -74,6 +77,21 @@ and string_of_expr = function
   StmtExpr(e) -> string_of_stmt_expr e
   | Literal(l) -> string_of_literal l
   | Id(s) -> "ID:" ^ s
+  | Binop(e1, o, e2) -> "BINOP:" ^ string_of_expr e1 ^ " " ^
+      (match o with
+	Add -> "PLUS"
+      | Sub -> "MINUS"
+      | Mult -> "TIMES"
+      | Div -> "DIV"
+      | Mod -> "MOD"
+      | Seq -> "SEQUAL"
+      | Peq -> "PEQUAL"
+      | Greater -> "GT"
+      | Geq -> "GTE"
+      | Less -> "LT"
+      | Leq -> "LTE"
+      | And -> "AND"
+      | Or -> "OR") ^ " " ^ string_of_expr e2
   | ArrayGet(id,idx) -> "ARRAY-" ^ id ^ "-GET[" ^ string_of_expr idx ^ "]"
   | ArrayLiteral(al) -> "ARRAY[" ^ String.concat "," 
         (List.map (fun e -> string_of_expr e ) al) ^ "]"
@@ -105,8 +123,13 @@ let string_of_fdecl fdecl =
 
 let string_of_vdecl id = "long " ^ id ^ ";\n"
 
+let string_of_globals globals = 
+  "GLOBALS " ^ string_of_data_type (fst globals) ^ " = " ^ string_of_literal (snd globals)   
+
 let string_of_program (vars, funcs) =
-  "Vars: \n" ^ String.concat ";\n" (List.map string_of_data_type vars) ^ "\n" ^
+  "Vars: \n" ^ String.concat ";\n" (List.map string_of_globals vars) ^ "\n" ^
   "Funcs: \n" ^ String.concat "\n" (List.map string_of_fdecl funcs)
+
+
 
 
