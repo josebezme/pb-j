@@ -1,5 +1,11 @@
 open Ast
 
+let imports = 
+  "import java.util.ArrayList;\n" ^
+  "import java.util.Arrays;\n" ^
+  "import java.util.List;\n" ^
+  "import java.util.Map;\n"
+
 let translate (globals, functions) =
   
   (* This just returns the string name for a data type *)
@@ -341,12 +347,20 @@ let translate (globals, functions) =
         else
           raise (Failure ("Undeclared variable " ^ s))
 
+    in let is_null = function 
+      Null -> true
+      | _ -> false
+
     in let rec string_of_stmt (output, locals) = function
       Block(string_of_stmts) -> 
         let l = List.fold_left string_of_stmt ("", locals) string_of_stmts 
         in (output ^ "{\n" ^ (fst l) ^ "\n}\n", locals)
       | Print(s) -> (output ^ "System.out.println(" ^ string_of_expr locals s ^ ");\n", locals)
-      | Return(e) -> (output ^ "return " ^ string_of_expr locals e ^ ";\n", locals)
+      | Return(e) -> 
+        if (check_assign locals e fdecl.fname true || is_null e) then
+        (output ^ "return " ^ string_of_expr locals e ^ ";\n", locals)
+        else
+          raise (Failure ("Invalid return expression for function: " ^ (get_dt_name fdecl.fname)))
       | ExprAsStmt(e) -> (output ^ string_of_stmt_expr locals e ^ ";\n", locals)
       | Declare(dt) -> 
         let name = get_dt_name dt in
@@ -364,7 +378,7 @@ let translate (globals, functions) =
           else
             raise (Failure ("Failed check assign on declare assign."))
 
-    in "\npublic static " ^
+    in "public static " ^
     (string_of_data_type fdecl.fname) ^ "(" ^ String.concat ", " (List.map string_of_data_type fdecl.formals) ^ ")"
       ^ fst (string_of_stmt ("", []) (Block fdecl.body)) ^ "\n"
   in let func_is_void = function
@@ -398,6 +412,9 @@ let translate (globals, functions) =
 
   (* The next line is the heart of it ans is where this all really starts *)
   in if check_all_are_true (List.map check_return_statements functions) then 
-    String.concat "\n" (List.map (translate_helper) functions) ^ String.concat "" (List.map (translate_globals) globals) 
+    "package plt.pbj;\n" ^ imports ^ "public class PBJRunner {\n" ^
+    String.concat "" (List.map (translate_globals) globals) ^
+    String.concat "" (List.map (translate_helper) functions) ^
+    "}\n"
   else
     raise(Failure("Functions had invalid returns."))
