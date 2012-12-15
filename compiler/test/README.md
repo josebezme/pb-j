@@ -13,7 +13,7 @@
     * Collection Types
         * ~~Map~~ (Jose)
         * ~~Array~~ (Robert)
-    * Globals (Rotem)
+    * ~~Globals~~ (Rotem)
 * Lexical
     * ~~Comments~~
     * Operators (Hahn)
