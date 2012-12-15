@@ -22,6 +22,7 @@ let parse_error s = (* Called by the parser function on error *)
 %token <string> ID
 %token <string> LONG_LITERAL
 %token <string> DUB_LITERAL
+%token GLOBAL
 %token EOF
 
 %left ID LBRACKET RBRACKET CONCAT
@@ -40,6 +41,8 @@ let parse_error s = (* Called by the parser function on error *)
 program:
   { [], [] }
   | program fdecl { fst $1, ($2 :: snd $1)}
+  | program GLOBAL vdecl ASSIGN prim_literal SEMI { ( ($3,$5) :: fst $1), snd $1 }    
+
 
 fdecl:
 	ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE

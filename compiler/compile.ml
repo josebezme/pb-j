@@ -16,6 +16,35 @@ let translate (globals, functions) =
       | Long(id) -> id
       | Void(id) -> id
 
+    (* Returns the java declaration of a datatype *)
+  in let rec string_of_data_type = function
+      String(id) -> "String " ^ id
+      | Map(id) -> "Map<Object, Object> " ^ id
+      | Array(id) -> "List<Object> " ^ id
+      | Boolean(id) -> "Boolean " ^ id
+      | Long(id) -> "Long " ^ id
+      | Double(id) -> "Double " ^ id
+      | Void(id) -> "void " ^ id
+
+   (* Turns a literal object into a java expr *)
+    in let rec string_of_literal = function
+      StringLiteral(s) -> "\"" ^ s ^ "\""
+      | DubLiteral(s) -> "new Double(" ^ s ^ ")"
+      | LongLiteral(s) -> "new Long(" ^ s ^ ")"
+      | BooleanLiteral(s) -> string_of_bool s
+
+  in let rec check_globals id globals = match globals with
+    [] -> false
+    | hd :: tl -> 
+        if get_dt_name(fst hd) = id then
+          true
+        else
+          check_globals id tl
+
+    (* Translate a global *)
+  in let translate_globals global =
+    "public static final " ^ string_of_data_type (fst global) ^ " = " ^ string_of_literal (snd global) ^ "; \n"  
+
   (* Translate a function with given env *)
   in let translate_helper env fdecl =
 
@@ -33,23 +62,6 @@ let translate (globals, functions) =
       | Double(id) -> "0.0"
       | Boolean(id) -> "false"
       | _ -> raise(Failure "No default initialization for this data_type.")
-
-    (* Returns the java declaration of a datatype *)
-    in let rec string_of_data_type = function
-      String(id) -> "String " ^ id
-      | Map(id) -> "Map<Object, Object> " ^ id
-      | Array(id) -> "List<Object> " ^ id
-      | Boolean(id) -> "Boolean " ^ id
-      | Long(id) -> "Long " ^ id
-      | Double(id) -> "Double " ^ id
-      | Void(id) -> "void " ^ id
-
-    (* Turns a literal object into a java expr *)
-    in let rec string_of_literal = function
-      StringLiteral(s) -> "\"" ^ s ^ "\""
-      | DubLiteral(s) -> "new Double(" ^ s ^ ")"
-      | LongLiteral(s) -> "new Long(" ^ s ^ ")"
-      | BooleanLiteral(s) -> string_of_bool s
 
     in let get_dt_from_name name locals =
       List.find (fun dt -> get_dt_name dt = name) locals
@@ -308,6 +320,9 @@ let translate (globals, functions) =
         (* Ensures that the used id is within the current scope *)
         if(List.exists (fun dt -> get_dt_name dt = s) locals) then
           s
+         else
+        if (check_globals s globals) then
+          s
         else
           raise (Failure ("Undeclared variable " ^ s))
 
@@ -341,8 +356,5 @@ let translate (globals, functions) =
   in let env = { 
       global_index = []
     }
-  (* The next line is the heart of it ans is where this all really starts *)
-  in String.concat "\n" (List.map (translate_helper env) functions)
-
-
-
+   (* The next line is the heart of it ans is where this all really starts *)
+  in String.concat "" (List.map (translate_helper env) functions) ^ String.concat "" (List.map (translate_globals) globals) 
