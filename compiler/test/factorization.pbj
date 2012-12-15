@@ -1,13 +1,13 @@
 ...Example usage of spread for prime factorization:
 master(map slaves, array args){ ... Runtime argument.
 	long bigPrime <- args[0]; 
-...array searchStarts;
+	array searchStarts;
 
 ... get the place for each slave to start
-...long iterations <- bigPrime / 3 / |slaves|;
+	long iterations <- bigPrime / 3 / |slaves|;
 ...for(long m <- 0; m < |slaves|; m <- m + 1) { 
 ...searchStarts[i] <- iterations * m; 
-}
+...}
 
 ... spread the starting points to the slaves
 ...long result <- spread: factor(@searchStarts, bigPrime, iterations);
@@ -22,4 +22,4 @@ master(map slaves, array args){ ... Runtime argument.
 ...}
 ...}
 ...null -> ...no evidence that it is not prime
-...}
+}

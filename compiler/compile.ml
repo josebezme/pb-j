@@ -158,6 +158,8 @@ let translate (globals, functions) =
             )
           | Concat(e1, e2) -> true
           | StmtExpr(e) -> match_data_type locals match_string_dt check_assign_helper dt e 
+          | MapGet(id, key) -> true
+          | ArrayGet(id, idx) -> true 
           | _ ->  if no_raise then false else raise (Failure ("Assigned string to invalid expression."))
           )
         (* CHECK ASSIGN FOR ARRAY **********************************************)
@@ -167,6 +169,8 @@ let translate (globals, functions) =
           | MapValues(id) -> true
           | MapKeys(id) -> true
           | StmtExpr(e) -> match_data_type locals match_array_dt check_assign_helper dt e
+          | MapGet(id, key) -> true
+          | ArrayGet(id, idx) -> true 
           | _ -> if no_raise then false else raise (Failure ("Assigned array to invalid expression."))
           )
         (*  CHECK ASSIGN FOR MAP ***********************************************)
@@ -187,6 +191,8 @@ let translate (globals, functions) =
             )
           | Size(id) -> true
           | StmtExpr(e) -> match_data_type locals match_long_dt check_assign_helper dt e
+          | MapGet(id, key) -> true
+          | ArrayGet(id, idx) -> true 
           | _ -> if no_raise then false else raise (Failure "Assigned long to invalid expression.")
           )
         (* CHECK ASSIGN FOR DOUBLE ********************************************)
@@ -198,6 +204,8 @@ let translate (globals, functions) =
               | _ ->  if no_raise then false else raise (Failure "Assigned double to invalid literal.")
             )
           | StmtExpr(e) -> match_data_type locals match_double_dt check_assign_helper dt e
+          | MapGet(id, key) -> true
+          | ArrayGet(id, idx) -> true 
           | _ -> if no_raise then false else raise (Failure "Assigned double to invalid expression.")
           )
         (* CHECK ASSIGN FOR BOOLEAN ******************************************)
@@ -208,6 +216,8 @@ let translate (globals, functions) =
               | _ -> if no_raise then false else raise (Failure "Assigned boolean to non-boolean literal.")
             )
           | StmtExpr(e) -> match_data_type locals match_boolean_dt check_assign_helper dt e
+          | MapGet(id, key) -> true
+          | ArrayGet(id, idx) -> true 
           | _ -> if no_raise then false else raise (Failure "Assigned double to invalid expression.")
           )
         | _ -> if no_raise then false else raise (Failure "Invalid assignment")
