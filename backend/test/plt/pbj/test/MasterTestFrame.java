@@ -130,7 +130,7 @@ public class MasterTestFrame extends JFrame implements ActionListener, MasterObs
 				Job job = new Job();
 				job.className = "plt.pbj.test.sample.CountIntegers";
 				job.method = "countIntegers";
-				job.data = "[1,2]";
+				job.data = "[1,2,3,4,5,6,9]";
 				jobs.put(handler.getName(), job);
 			}
 			

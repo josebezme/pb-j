@@ -183,7 +183,50 @@ let translate (globals, functions) =
           id ^ ".put(" ^ string_of_expr locals key ^ ", " ^ string_of_expr locals v ^ ")"
         else
           raise (Failure (id ^ " is not a valid map type."))
-      | FunctionCall(s,e) -> s ^ "("  ^  String.concat "," (List.map (string_of_expr locals) e) ^ ")" 
+      | FunctionCall(s,e) -> s ^ "("  ^  String.concat "," (List.map (string_of_expr locals) e) ^ ")"
+(*			| Jam(f, sp)        -> (match (f, sp) with
+			     (FunctionCall(id, e), Spread(f)) -> *)
+				 
+(*			| Spread(f)          -> 
+				(* jam: add(@) spread: add(@myList); *)
+				(* create a map from slave to job where job is*)
+				(*  for(SlaveHandler handler : master.getSlaveHandlers()) {
+                Job job = new Job();
+                job.className = "plt.pbj.test.sample.CountIntegers";
+                job.method = "countIntegers";
+                job.data = "[1,2]";
+                jobs.put(handler.getName(), job);
+            } 
+						let l = List.fold_left string_of_stmt ("", locals) string_of_stmts 
+        in (output ^ "{\n" ^ (fst l) ^ "\n}\n", locals)*)
+						(*pass the actuals*)
+(*        if(List.exists (fun dt -> get_dt_name dt = s) locals) then
+          s
+        else
+          raise (Failure ("Undeclared variable " ^ s))*)
+				let rec s_a_helper (spread, normal) = function
+           | At(e)    -> (e::spread, normal )
+					 | x -> ( spread, x::normal )
+				in let split_actuals acts = List.fold_left s_a_helper ( [], [] ) acts 
+				in
+					(* requires function slice which returns a map from each slave to the*)
+					(* part of the slice they get*)
+          (* right now all spread vars need to be at the end *)
+					(*sliceSpread( Master master, String className, String method, List< Object > inNormal, List< Object > inSliced)*)
+				(match f with
+				  FunctionCall(id, e) -> 
+						let acts = split_actuals e in     
+						    "Object[] normActuals = { "
+							^ "(Object)"
+              ^ String.concat ", (Object)" (List.map (string_of_expr locals) (fst(acts)))
+							^ "};\n"
+							^ "Object[] slicedActuals = { "
+              ^ "(Object)"
+              ^ String.concat ", (Object)" (List.map (string_of_expr locals) (snd(acts)))
+              ^ "};\n"
+						  ^ "General.sliceSpread( master, className, " 
+						  ^ id ^ ", Arrays.asList(normActuals), Arrays.asList(slicedActuals)); "
+				 | _ -> raise (Failure ("Spread on non-function.")))*)
     and string_of_expr locals = function
       StmtExpr(e) -> string_of_stmt_expr locals e
       | Literal(l) -> string_of_literal l
@@ -221,6 +264,7 @@ let translate (globals, functions) =
       | Concat(e1, e2) ->
         (* Start it off with an empty string so java knows to concat any numeric values vs addition. *)
         "(\"\" + " ^ string_of_expr locals e1 ^ " + " ^ string_of_expr locals e2 ^ ")" 
+(*			| At(e) -> raise (Failure ("Poorly placed @ " ^ string_of_expr locals e))*)
       | Id(s) -> 
         (* Ensures that the used id is within the current scope *)
         if(List.exists (fun dt -> get_dt_name dt = s) locals) then

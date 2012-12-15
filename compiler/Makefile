@@ -16,14 +16,18 @@ scanner.ml : scanner.mll
 %.cmo : %.ml
 	ocamlc -c $<
 
-test1.java: pbjc
-	pbjc -c test/01_main.pbj
+bool.java: pbjc
+	pbjc -c test/bool.pbj
 
-test2.java: pbjc
-	pbjc -c test/02_two_funcs.pbj
+array_declare.java: pbjc
+	pbjc -c test/array_declare.pbj
 
 null.java: pbjc
 	pbjc -c test/null.pbj
+
+pbj_spread.java: pbjc
+	pbjc test/pbj_spread.pbj
+	pbjc -c test/pbj_spread.pbj
 
 arrays.java: pbjc
 	pbjc -c test/arrays.pbj
@@ -35,6 +39,7 @@ null: pbjc
 arrays: pbjc
 	pbjc -b test/arrays.pbj
 	java arrays
+
 
 alltests.java: test1.java test2.java
 

@@ -16,8 +16,10 @@ rule token = parse
 | '|'          { PIPE }
 | '*'          { STAR }
 | '~'          { CONCAT }
-| "map"        { MAP }
-| "array"      { ARRAY }
+(*| "@"          { AT }
+| "spread: "   { SPREAD }
+| "jam: "      { JAM }
+| "array"      { ARRAY }*)
 | "print"      { PRINT }
 | "string"     { STRING }
 | "<-"         { ASSIGN }

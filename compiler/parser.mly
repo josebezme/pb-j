@@ -32,7 +32,13 @@ let parse_error s = (* Called by the parser function on error *)
 %type <Ast.program> program
 
 %%
+/*
+%token AT SPREAD JAM
 
+%right JAM
+%right NOJAMFUN
+%right SPREAD
+*/
 program:
   { [], [] }
   | program fdecl { fst $1, ($2 :: snd $1)}
@@ -84,8 +90,11 @@ stmt_expr:
   ARRAY_BEGIN expr RBRACKET ASSIGN expr { ArrayPut($1, $2, $5) }
   | ID LBRACE expr RBRACE ASSIGN expr { MapPut($1, $3, $6) }
   | ID ASSIGN expr   { Assign($1,$3) }
-  | ID LPAREN actuals_opt RPAREN { FunctionCall($1,$3) }    
-
+  | ID LPAREN actuals_opt RPAREN { FunctionCall($1,$3) }
+/*	| SPREAD stmt_expr             { Spread($2) }
+	| JAM stmt_expr stmt_expr      { JamSpread($2, $3) }
+	| JAM %prec NOJAMFUN stmt_expr { JamSpread( FunctionCall("stdJam", []), $2) }
+*/
 expr:
   stmt_expr { StmtExpr($1) }
   | ID { Id($1) }
@@ -99,7 +108,8 @@ expr:
   | ID LBRACE STAR RBRACE { MapValues($1) }
   | PIPE ID PIPE { Size($2) }
   | expr CONCAT expr { Concat($1, $3) }
-
+/*	| AT expr        { At($2) }
+*/
 vdecl:
   MAP ID { Map($2) }
   | LONG ID {Long ($2) }

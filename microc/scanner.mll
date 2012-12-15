@@ -20,6 +20,10 @@ rule token = parse
 | "<="     { LEQ }
 | ">"      { GT }
 | ">="     { GEQ }
+| '@'          { AT }
+| "spread:"    { SPREAD }
+| "jam:"       { JAM }
+| "map"        { MAP }
 | "if"     { IF }
 | "else"   { ELSE }
 | "for"    { FOR }
