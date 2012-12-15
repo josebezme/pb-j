@@ -1,0 +1,5 @@
+global double newresult <- 10.0;
+
+...master(map slaves, array args) {
+...long a;
+...}

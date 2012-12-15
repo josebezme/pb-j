@@ -40,6 +40,7 @@ rule token = parse
 | "long"       { LONG }
 | "double"     { DOUBLE }
 | "null"       { NULL }
+| "global"     {GLOBAL}
 | (['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as id) "[" { ARRAY_BEGIN(id) }
 | '"' ([^'"']+ as s) '"'   { STRING_LITERAL(s) }
 | ['0'-'9']* ['.'] ['0'-'9']+ as lxm { DUB_LITERAL(lxm) }
