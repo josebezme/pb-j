@@ -17,7 +17,7 @@ let translate (globals, functions) =
       | Void(id) -> id
 
   (* Translate a function with given env *)
-  in let translate_helper env fdecl =
+  in let translate_helper fdecl =
 
     (* This is a utility method for turning a map literal into a valid java expr
         The method it's self is in the backend code. *)
@@ -96,6 +96,32 @@ let translate (globals, functions) =
       String(s) -> true
       | _ -> raise (Failure ("Assigned string to invalid data type"))
 
+    in let rec match_array_dt = function
+      Array(s) -> true
+      | _ -> raise (Failure ("Assigned array to invalid data type"))
+
+    in let rec match_map_dt = function
+      Map(s) -> true
+      | _ -> raise (Failure ("Assigned array to invalid data type"))
+
+    in let rec match_long_dt = function
+      Long(s) -> true
+      | _ -> raise (Failure ("Assigned long to invalid data type"))
+
+    in let rec match_double_dt = function
+      Double(s) -> true
+      | _ -> raise (Failure ("Assigned double to invalid data type"))
+
+    in let rec match_boolean_dt = function
+      Boolean(s) -> true
+      | _ -> raise (Failure ("Assigned boolean to invalid data type"))
+
+    in let rec match_data_type locals match_func check_func dt = function
+      FunctionCall(id,e) -> match_func (get_func_dt id functions)
+      | MapPut(id, key, e) -> check_func locals e dt
+      | ArrayPut(id, idx, e) -> check_func locals e dt
+      | Assign(id, e) -> check_func locals e dt
+
     (* Checks for invalid assignments of data types *)
     in let rec check_assign locals e dt = match dt with
       (*  CHECK ASSIGN FOR STRING ***********************************************)
@@ -110,32 +136,25 @@ let translate (globals, functions) =
           )
         | Concat(e1, e2) -> true
         | MapLiteral(ml) -> raise (Failure ("Assigned string to map literal."))
-        | StmtExpr(e) -> (match e with
-          FunctionCall(id,e) -> match_string_dt (get_func_dt id functions)
-          | MapPut(id, key, e) -> check_assign locals e dt
-          | ArrayPut(id, idx, e) -> check_assign locals e dt
-          | Assign(id, e) -> check_assign locals e dt
-          )
+        | StmtExpr(e) -> match_data_type locals match_string_dt check_assign dt e
         | _ -> raise (Failure ("Assigned string to invalid expression."))
         )
       (* CHECK ASSIGN FOR ARRAY **********************************************)
       | Array(id) -> (match e with
-        Id(id) -> (match (get_dt_from_name id locals) with
-            Array(id) -> true
-            | _ -> raise (Failure ("Assigned array to non-array type: " ^ id))
-          )
+        Id(id) -> match_array_dt (get_dt_from_name id locals)
         | ArrayLiteral(a) -> true
         | MapValues(id) -> true
         | MapKeys(id) -> true
+        | StmtExpr(e) -> match_data_type locals match_array_dt check_assign dt e
         | _ -> raise (Failure ("Assigned array to invalid expression."))
         )
       (*  CHECK ASSIGN FOR MAP ***********************************************)
       | Map(id) -> (match e with
-        Id(id) -> (match (get_dt_from_name id locals) with
-            Map(s) -> true
-            | _ -> raise (Failure "Assigned map to invalid data type.")
-          )
+        Id(id) -> match_map_dt (get_dt_from_name id locals)
         | MapLiteral(ml) -> true
+        | MapGet(id, key) -> true
+        | ArrayGet(id, idx) -> true
+        | StmtExpr(e) -> match_data_type locals match_map_dt check_assign dt e
         | _ -> raise (Failure "Asigned map to invalid expr.")
         ) 
       (* CHECK ASSIGN FOR LONG ***********************************************)
@@ -149,31 +168,28 @@ let translate (globals, functions) =
             | _ -> raise (Failure "Assigned long to non-long literal")
           )
         | Size(id) -> true
+        | StmtExpr(e) -> match_data_type locals match_long_dt check_assign dt e
         | _ -> raise (Failure "Assigned long to invalid expression.")
         )
       (* CHECK ASSIGN FOR DOUBLE ********************************************)
       | Double(id) -> (match e with
-        Id(id) -> (match (get_dt_from_name id locals) with
-            Double(s) -> true
-            | _ -> raise (Failure ("Assigned double to non-double id " ^ id))
-          )
+        Id(id) -> match_double_dt (get_dt_from_name id locals) 
         | Literal(l) -> (match l with
             DubLiteral(dl) -> true
             | LongLiteral(ll) -> true
             | _ -> raise (Failure "Assigned double to invalid literal.")
           )
+        | StmtExpr(e) -> match_data_type locals match_double_dt check_assign dt e
         | _ -> raise (Failure "Assigned double to invalid expression.")
         )
       (* CHECK ASSIGN FOR BOOLEAN ******************************************)
       | Boolean(id) -> (match e with
-        Id(id) -> (match (get_dt_from_name id locals) with
-            Boolean(bid) -> true
-            | _ -> raise (Failure ("Assigned boolean to non-boolean id " ^ id))
-          )
+        Id(id) -> match_boolean_dt (get_dt_from_name id locals)
         | Literal(l) -> (match l with
             BooleanLiteral(b) -> true
             | _ -> raise (Failure "Assigned boolean to non-boolean literal.")
           )
+        | StmtExpr(e) -> match_data_type locals match_boolean_dt check_assign dt e
         | _ -> raise (Failure "Assigned boolean to invalid expression.")
         )
       | _ -> raise (Failure "Invalid assignment")
@@ -286,12 +302,40 @@ let translate (globals, functions) =
     in "\npublic static " ^
     (string_of_data_type fdecl.fname) ^ "(" ^ String.concat ", " (List.map string_of_data_type fdecl.formals) ^ ")"
       ^ fst (string_of_stmt ("", []) (Block fdecl.body)) ^ "\n"
+  in let func_is_void = function
+    Void(s) -> true
+    | _ -> false
 
-  in let env = { 
-      global_index = []
-    }
+  in let rec check_all_are_true = function
+    [] -> true
+    | hd :: tl -> 
+      if hd then
+        check_all_are_true tl
+      else 
+        false
+
+  in let check_return_statements func =  
+    let rec check_return_helper last_stmt is_outer = function
+      [] -> (match last_stmt with
+          Return(e) -> true
+          | _ -> if ((not is_outer) || func_is_void func.fname) then true
+            else false
+        )
+      | hd :: tl -> (match hd with
+          Block(stmts) -> 
+            if check_return_helper hd false stmts then 
+              check_return_helper hd is_outer tl
+            else
+              false
+          | _ -> check_return_helper hd is_outer tl
+        )
+  in check_return_helper (Block []) true (func.body)
+
   (* The next line is the heart of it ans is where this all really starts *)
-  in String.concat "\n" (List.map (translate_helper env) functions)
+  in if check_all_are_true (List.map check_return_statements functions) then 
+    String.concat "\n" (List.map (translate_helper) functions)
+  else
+    raise(Failure("Functions had invalid returns."))
 
 
 
