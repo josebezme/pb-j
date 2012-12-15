@@ -7,12 +7,13 @@
     * Primitive Types
         * ~~long~~ (Fred)
         * ~~double~~ (Fred)
-        * ~~string~~
+        * ~~string~~(Rotem)
         * ~~boolean~~ (Rotem) 
         * ~~null (Robert)~~ 
     * Collection Types
         * ~~Map~~ (Jose)
-        * ~~Array~~ (Robert) 
+        * ~~Array~~ (Robert)
+    * Globals (Rotem)
 * Lexical
     * ~~Comments~~
     * Operators (Hahn)
@@ -41,3 +42,4 @@
     * ~~While (Robert)~~
     * ~~For (Robert)~~
     * ~~Print~~
+
