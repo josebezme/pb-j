@@ -16,7 +16,7 @@
 * Lexical
     * ~~Comments~~
     * Operators (Hahn)
-        * PBJ Op
+        * PBJ Op (Robert)
         * ~~Assignment operator~~ (Jose)
         * ~~Return~~ (Hahn)
     * ~~Literal Types~~
@@ -25,7 +25,8 @@
     * ~~Maps~~ (Jose)
 * Expressions
     * Operators
-        * Arithmetic (Fred)
+        * Arithmetic (Hanh)
+          * Compiler checking for binop.
         * Comparison (Fred)
         * Inequalities (FRED)
         * Logical operators (Hahn)
