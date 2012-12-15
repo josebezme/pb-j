@@ -25,6 +25,18 @@ test2.java: pbjc
 null.java: pbjc
 	pbjc -c test/null.pbj
 
+pbj_spread.java: pbjc
+	pbjc -c test/pbj_spread.pbj
+
+pbj_slice_spread.java: pbjc
+	pbjc -c test/pbj_slice_spread.pbj
+
+pbj_jam_spread.java: pbjc
+	pbjc -c test/pbj_jam_spread.pbj
+
+pbj_jam_spread_default.java: pbjc
+	pbjc -c test/pbj_jam_spread_default.pbj
+
 arrays.java: pbjc
 	pbjc -c test/arrays.pbj
 

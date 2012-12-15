@@ -115,6 +115,14 @@ let translate (globals, functions) =
           | MapPut(id, key, e) -> check_assign locals e dt
           | ArrayPut(id, idx, e) -> check_assign locals e dt
           | Assign(id, e) -> check_assign locals e dt
+					| JamSpread(f, sp) -> 
+						(match (f, sp) with 
+						  | (FunctionCall(id, e), Spread(FunctionCall(id2, e2)) ) -> 
+							 match_string_dt (get_func_dt id functions) && match_string_dt (get_func_dt id2 functions)
+							| _ -> raise (Failure ("Improper Jam/Spread.")))
+					| Spread(f)        -> (match f with
+						  FunctionCall(id, e) -> match_string_dt (get_func_dt id functions)
+						| _ -> raise (Failure ("Improper Spread.")))
           )
         | _ -> raise (Failure ("Assigned string to invalid expression."))
         )
@@ -190,6 +198,8 @@ let translate (globals, functions) =
         | _ -> false
       in List.exists (fun dt -> get_dt_name dt = id && is_array_helper dt) locals
 
+				
+				
     (* Basic recursive function for evaluating expressions *)
     in let rec string_of_stmt_expr locals = function
       Assign(s, e) ->   
@@ -216,6 +226,52 @@ let translate (globals, functions) =
           raise (Failure (id ^ " is not a valid map type."))
       | FunctionCall(s,e) -> s ^ "("  ^  String.concat "," (List.map (string_of_expr locals) e) ^ ")" 
 
+      | JamSpread(f, sp)   -> 
+				(* jam: add(@) spread: add(@myList); *)
+        (* create a map from slave to job where job is*)
+        (*pass the actuals*)
+        let print_acts title list locals = "Object[] " ^ title ^ " = { "
+            ^ (if List.length list > 0 then "(Object)" else "")
+            ^ (String.concat ", (Object)" (List.map (string_of_expr locals) list))
+            ^ "};\n"
+          in let rec s_a_helper (spread, normal) = function
+             | At(e)    -> (e::spread, normal )
+             | x -> ( spread, x::normal )
+        and split_actuals acts = List.fold_left s_a_helper ( [], [] ) acts 
+        in (match (f, sp) with
+          (FunctionCall(jid, je), Spread(FunctionCall(fid, fe))) ->
+					   let acts = split_actuals fe in 
+                  (print_acts "normActuals" (snd(acts)) locals)    
+                ^ (print_acts "slicedActuals" (fst(acts)) locals)
+								^ (print_acts "jnormActuals" je locals)
+						^ " jamSliceSpread( master, className, "
+            ^ jid ^ ", Arrays.asList(jnormActuals),"
+						^ fid ^ ", Arrays.asList(normActuals), Arrays.asList(slicedActuals)); "
+						| (_,_) -> raise (Failure("improper Jam Spread 2.")))
+
+      | Spread(f)          -> 
+				let print_acts title list locals = "Object[] " ^ title ^ " = { "
+            ^ (if List.length list > 0 then "(Object)" else "")
+            ^ (String.concat ", (Object)" (List.map (string_of_expr locals) list))
+            ^ "};\n"
+          in let rec s_a_helper (spread, normal) = function
+             | At(e)    -> (e::spread, normal )
+             | x -> ( spread, x::normal )
+        and split_actuals acts = List.fold_left s_a_helper ( [], [] ) acts 
+        in 
+	            (* requires function slice which returns a map from each slave to the*)
+	            (* part of the slice they get*)
+	            (* right now all spread vars need to be at the end *)
+	            (*sliceSpread( Master master, String className, String method, List< Object > inNormal, List< Object > inSliced)*)
+	        (match f with
+	          FunctionCall(id, e) -> 
+	                let acts = split_actuals e in 
+											  (print_acts "normActuals" (snd(acts)) locals)    
+	                  ^ (print_acts "slicedActuals" (fst(acts)) locals)
+	                  ^ "General.sliceSpread( master, className, " 
+	                  ^ id ^ ", Arrays.asList(normActuals), Arrays.asList(slicedActuals)); "
+	         | _ -> raise (Failure ("Spread on non-function.")))
+(*		 | _ -> raise (Failure ("not done yet")) *)
     and string_of_expr locals = function
       StmtExpr(e) -> string_of_stmt_expr locals e
       | Literal(l) -> string_of_literal l
@@ -272,6 +328,7 @@ let translate (globals, functions) =
       | Concat(e1, e2) ->
         (* Start it off with an empty string so java knows to concat any numeric values vs addition. *)
         "(\"\" + " ^ string_of_expr locals e1 ^ " + " ^ string_of_expr locals e2 ^ ")" 
+			| At(e)               ->  string_of_expr locals e
       | Id(s) -> 
         (* Ensures that the used id is within the current scope *)
         if(List.exists (fun dt -> get_dt_name dt = s) locals) then

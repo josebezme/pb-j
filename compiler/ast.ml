@@ -20,6 +20,8 @@ type stmt_expr =
   | ArrayPut      of string * expr * expr
   | MapPut of string * expr * expr
   | FunctionCall of string * expr list  
+	| Spread    of stmt_expr
+	| JamSpread of stmt_expr * stmt_expr
 
 and expr = 
   StmtExpr of stmt_expr
@@ -35,6 +37,7 @@ and expr =
   | MapValues of string
   | Size of string
   | Concat of expr * expr
+  | At            of expr
 
 type stmt =
     Block of stmt list
@@ -72,6 +75,9 @@ let rec string_of_stmt_expr = function
   | ArrayPut(id, idx, e)   -> "ARRAY-" ^ id ^ "-PUT[" ^ string_of_expr idx ^ ", " ^ string_of_expr e ^ "]"
   | MapPut(id,key,v) -> "MAP-" ^ id ^ "-PUT{" ^ string_of_expr key ^ ", " ^ string_of_expr v ^ "}"
   | FunctionCall(s,e) ->"FUNCTION CALL " ^ s ^   "{\n" ^ String.concat "," (List.map string_of_expr e) ^ "}\n"  
+  | Spread(f)       -> "SPREAD AND CALL " ^ string_of_stmt_expr f
+	| JamSpread(f, s) -> "JAM THE RESULTS OF " ^ string_of_stmt_expr s 
+                           ^ " WITH " ^ string_of_stmt_expr f
 
 and string_of_expr = function
   StmtExpr(e) -> string_of_stmt_expr e
@@ -103,6 +109,7 @@ and string_of_expr = function
   | Size(id) -> "SIZE-of-" ^ id
   | Concat(e1, e2) -> "CONCAT(" ^ string_of_expr e1 ^ "," ^ string_of_expr e1 ^ ")"
   | Null -> "NULL"
+	| At(e)            -> "SPREADING: " ^ string_of_expr e
 
 let rec string_of_stmt = function
     Block(stmts) ->

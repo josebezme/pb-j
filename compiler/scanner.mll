@@ -29,6 +29,9 @@ rule token = parse
 | "<="         { LTE }
 | "&&"         { AND }
 | "||"         { OR }
+| "spread:"   { SPREAD }
+| "jam:"       { JAM }
+| '@'          { AT }
 | "map"        { MAP }
 | "array"      { ARRAY }
 | "print"      { PRINT }
