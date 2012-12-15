@@ -5,4 +5,5 @@ master(map slaves, array args) {
 
 string doSomething() {
 	print("Did something");
+	-> "a";
 }
