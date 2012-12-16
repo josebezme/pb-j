@@ -26,11 +26,11 @@
     * ~~Maps~~ (Jose)
 * Expressions
     * Operators
-        * Arithmetic (Hanh)
-          * Compiler checking for binop.
-        * Comparison (Fred)
-        * Inequalities (FRED)
-        * Logical operators (Hahn)
+        * ~~Arithmetic~~ (Hahn)
+          * ~~Compiler checking for binop.~~
+        * ~~Comparison (Hahn)~~
+        * ~~Inequalities (Hahn)~~
+        * ~~Logical operators (Hahn)~~
         * ~~String concat~~ (Jose)
     * ~~Assignment~~
     * ~~Func Call (Rotem)~~
