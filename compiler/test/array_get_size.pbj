@@ -1,4 +1,4 @@
 master(map slaves, array args) {
-	string a <- "Hello";
-	print(a);
+	array a;
+	print( a[|a|] );
 }

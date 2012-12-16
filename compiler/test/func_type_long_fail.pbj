@@ -1,0 +1,8 @@
+master(map slaves, array args) {
+	string a <- doSomething();
+	print("Hello");
+}
+
+long doSomething() {
+	print("Did something");
+}
