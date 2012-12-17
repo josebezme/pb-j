@@ -66,7 +66,8 @@ let translate (globals, functions) =
       | _ -> raise(Failure "No default initialization for this data_type.")
 
     in let get_dt_from_name name locals =
-      List.find (fun dt -> get_dt_name dt = name) locals
+      try List.find (fun dt -> get_dt_name dt = name) locals
+        with Not_found -> raise(Failure ("Variable " ^ name ^ " is undeclared."))
 
     in let rec check_array_index locals = function
       Id(id) -> (match (get_dt_from_name id locals) with
