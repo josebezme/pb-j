@@ -234,6 +234,11 @@ let translate (globals, functions) =
             ^ (if List.length list > 0 then "(Object)" else "")
             ^ (String.concat ", (Object)" (List.map (string_of_expr locals) list))
             ^ "};\n"
+				and print_col_acts title list locals = "Collection[] " ^ title ^ " = { "
+            ^ (if List.length list > 0 then "(Collection)" else "")
+            ^ (String.concat ", (Collection)" (List.map (string_of_expr locals) list))
+            ^ "};\n"
+
           in let rec s_a_helper (spread, normal) = function
              | At(e)    -> (e::spread, normal )
              | x -> ( spread, x::normal )
@@ -242,7 +247,7 @@ let translate (globals, functions) =
           (FunctionCall(jid, je), Spread(FunctionCall(fid, fe))) ->
 					   let acts = split_actuals fe in 
                   (print_acts "normActuals" (snd(acts)) locals)    
-                ^ (print_acts "slicedActuals" (fst(acts)) locals)
+                ^ (print_col_acts "slicedActuals" (fst(acts)) locals)
 								^ (print_acts "jnormActuals" je locals)
 						^ "PBJOp.jamSliceSpread( master, "
 						^ "Thread.currentThread().getStackTrace()[1].getClassName(), \""
@@ -252,11 +257,15 @@ let translate (globals, functions) =
 						| (_,_) -> raise (Failure("improper Jam Spread 2.")))
 
       | Spread(f)          -> 
-				let print_acts title list locals = "Object[] " ^ title ^ " = { "
+        let print_acts title list locals = "Object[] " ^ title ^ " = { "
             ^ (if List.length list > 0 then "(Object)" else "")
             ^ (String.concat ", (Object)" (List.map (string_of_expr locals) list))
             ^ "};\n"
-          in let rec s_a_helper (spread, normal) = function
+                and print_col_acts title list locals = "Collection[] " ^ title ^ " = { "
+            ^ (if List.length list > 0 then "(Collection)" else "")
+            ^ (String.concat ", (Collection)" (List.map (string_of_expr locals) list))
+            ^ "};\n"          
+						in let rec s_a_helper (spread, normal) = function
              | At(e)    -> (e::spread, normal )
              | x -> ( spread, x::normal )
         and split_actuals acts = List.fold_left s_a_helper ( [], [] ) acts 
@@ -269,7 +278,7 @@ let translate (globals, functions) =
 	          FunctionCall(id, e) -> 
 	                let acts = split_actuals e in 
 											  (print_acts "normActuals" (snd(acts)) locals)    
-	                  ^ (print_acts "slicedActuals" (fst(acts)) locals)
+	                  ^ (print_col_acts "slicedActuals" (fst(acts)) locals)
 	                  ^ "PBJOp.sliceSpread( master, " 
 										^ "Thread.currentThread().getStackTrace()[1].getClassName(), \"" 
 	                  ^ id 
