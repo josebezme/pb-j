@@ -1,4 +1,15 @@
 master(map slaves, array args) {
-	array a;
+	array a = [];
+
+	long b;
+	long d;
+
+	b <- d <- 3;
+
+	long c <- a[0] <- 3;
+
+
 	print( a[0] );
 }
+
+

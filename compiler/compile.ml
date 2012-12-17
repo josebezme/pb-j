@@ -219,7 +219,17 @@ let translate (globals, functions) =
             )
           | MapGet(id, key) -> true
           | ArrayGet(id, idx) -> true 
-          | Binop (e1, o, e2) -> check_assign_helper e1 dt
+          | Binop (e1, o, e2) -> (match o with
+            Seq -> true
+            | Peq -> true
+            | Greater -> true
+            | Geq -> true
+            | Less -> true
+            | Leq -> true
+            | And -> true 
+            | Or -> true
+            | _ -> false
+            )
           | StmtExpr(e) -> match_data_type match_boolean_dt check_assign_helper dt e
           | _ -> if no_raise then false else raise (Failure "Assigned double to invalid expression.")
           )
@@ -277,11 +287,10 @@ let translate (globals, functions) =
 	    (* Expressions must be booleans for logical ops *)
 	    if (o = And || o = Or) then 
 	      check_assign locals e1 dt_bool true && check_assign locals e2 dt_bool true
-	    (* First expression must be an object for .equals() *)
-	    else if o = Peq then
-	      check_assign locals e1 dt_str true || check_assign locals e1 dt_array true || check_assign locals e1 dt_map true
+	    (* All datatypes are java objects so expression can be any type for .equals() *)
+	    else if o = Seq then true
 	    (* Expression must be the same type for == *)
-	    else if o = Seq then
+	    else if o = Peq then
 	      (check_assign locals e1 dt_long true && check_assign locals e2 dt_long true) ||
 	      (check_assign locals e1 dt_doub true && check_assign locals e2 dt_doub true) ||
 	      (check_assign locals e1 dt_str true && check_assign locals e2 dt_str true) ||
@@ -292,29 +301,29 @@ let translate (globals, functions) =
 	    else 
 	      (check_assign locals e1 dt_long true || check_assign locals e1 dt_doub true) 
 		&& (check_assign locals e2 dt_long true || check_assign locals e2 dt_doub true)
-	  in if check_binop_type locals then
-	    let line = string_of_expr locals e1 ^ 
-	      (match o with
-		Add -> "+"
-	      | Sub -> "-"
-	      | Mult -> "*"
-	      | Div -> "/"
-	      | Mod -> "%"
-	      | Seq -> "=="
-	      | Peq -> ".equals("
-	      | Greater -> ">"
-	      | Geq -> ">="
-	      | Less -> "<"
-	      | Leq -> "<="
-	      | And -> "&&"
-	      | Or -> "||") in
-	    if o = Peq then line ^ string_of_expr locals e2 ^ ")"
+	  in let op_string =   
+	    (match o with
+	      Add -> "+"
+	    | Sub -> "-"
+	    | Mult -> "*"
+	    | Div -> "/"
+	    | Mod -> "%"
+	    | Seq -> ".equals("
+	    | Peq -> "=="
+	    | Greater -> ">"
+	    | Geq -> ">="
+	    | Less -> "<"
+	    | Leq -> "<="
+	    | And -> "&&"
+	    | Or -> "||") in
+	  if check_binop_type locals then
+	    let line = string_of_expr locals e1 ^ op_string in 
+	    if o = Seq then line ^ string_of_expr locals e2 ^ ")"
 	    else line ^ string_of_expr locals e2
 	  else 
-	    if (o = And || o = Or) then raise (Failure ("Invalid Type: Both expressions must be type Boolean"))
-		else if o = Seq then raise (Failure ("Invalid Type: Both expressions must be the same type"))
-		    else if o = Peq then raise (Failure ("Invalid Type: First expression must be type String, Array, or Map"))
-			else raise (Failure ("Invalid Type: Both expressions must be type Long or Double"))
+	    if (o = And || o = Or) then raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be type Boolean"))
+	    else if o = Peq then raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be the same type"))
+	    else raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be type Long or Double"))
       | MapLiteral(ml) -> into_map ("new Object[]{" ^
           String.concat "," (List.map (fun (d,e) -> string_of_literal d ^ "," ^ string_of_expr locals e) ml) ^ 
           "}")
