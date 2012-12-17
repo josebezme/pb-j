@@ -156,6 +156,8 @@ let translate (globals, functions) =
               | _ ->  if no_raise then false else raise (Failure ("Assigned string to non-string literal."))
             )
           | Concat(e1, e2) -> true
+          | MapGet(id, key) -> true
+          | ArrayGet(id, idx) -> true 
           | StmtExpr(e) -> match_data_type match_string_dt check_assign_helper dt e 
           | _ ->  if no_raise then false else raise (Failure ("Assigned string to invalid expression."))
           )
@@ -165,6 +167,8 @@ let translate (globals, functions) =
           | ArrayLiteral(a) -> true
           | MapValues(id) -> true
           | MapKeys(id) -> true
+          | MapGet(id, key) -> true
+          | ArrayGet(id, idx) -> true 
           | StmtExpr(e) -> match_data_type match_array_dt check_assign_helper dt e
           | _ -> if no_raise then false else raise (Failure ("Assigned array to invalid expression."))
           )
@@ -186,6 +190,8 @@ let translate (globals, functions) =
             )
           | Binop (e1, o, e2) -> check_assign_helper e1 dt
           | Size(id) -> true
+          | MapGet(id, key) -> true
+          | ArrayGet(id, idx) -> true 
           | StmtExpr(e) -> match_data_type match_long_dt check_assign_helper dt e
           | _ -> if no_raise then false else raise (Failure "Assigned long to invalid expression.")
           )
@@ -197,6 +203,8 @@ let translate (globals, functions) =
               | LongLiteral(ll) -> true
               | _ ->  if no_raise then false else raise (Failure "Assigned double to invalid literal.")
             )
+          | MapGet(id, key) -> true
+          | ArrayGet(id, idx) -> true 
           | Binop (e1, o, e2) -> check_assign_helper e1 dt
           | StmtExpr(e) -> match_data_type match_double_dt check_assign_helper dt e
           | _ -> if no_raise then false else raise (Failure "Assigned double to invalid expression.")
@@ -208,6 +216,8 @@ let translate (globals, functions) =
               BooleanLiteral(b) -> true
               | _ -> if no_raise then false else raise (Failure "Assigned boolean to non-boolean literal.")
             )
+          | MapGet(id, key) -> true
+          | ArrayGet(id, idx) -> true 
           | Binop (e1, o, e2) -> check_assign_helper e1 dt
           | StmtExpr(e) -> match_data_type match_boolean_dt check_assign_helper dt e
           | _ -> if no_raise then false else raise (Failure "Assigned double to invalid expression.")
