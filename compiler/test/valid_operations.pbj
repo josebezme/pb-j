@@ -2,18 +2,19 @@ master(map slaves, array args) {
 	string a <- "abc";
 	long b <- 10;
 	boolean c <- true;
+	double d <- 2.5;
 
-	print(b + b);
-	print(b - b);
-	print(b * b);
-	print(b / b);
-	print(b % b);
-	print(a = a);
-	print(a === b);
-	print(b > b);
-	print(b >= b);
-	print(b < b);
-	print(b <= b);
+	print(b + d);
+	print(b - d);
+	print(b * d);
+	print(b / d);
+	print(b % d);
+	print(a = b);
+	print(a === "abc");
+	print(b > d);
+	print(b >= d);
+	print(b < d);
+	print(b <= d);
 	print(c || c);
 	print(c && c);
 }

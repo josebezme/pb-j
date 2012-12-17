@@ -3,5 +3,5 @@ master(map slaves, array args) {
 	long b <- 10;
 	boolean c <- true;
 
-	print(a = c);
+	print(a === c);
 }

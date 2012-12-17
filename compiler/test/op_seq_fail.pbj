@@ -1,7 +1,0 @@
-master(map slaves, array args) {
-	string a <- "abc";
-	long b <- 10;
-	boolean c <- true;
-
-	print(b === a);
-}
