@@ -382,6 +382,14 @@ let translate (globals, functions) =
       Null -> true
       | _ -> false
 
+    
+    in let check_valid_for_stmt = function
+     ExprAsStmt(stmt_of_expr) -> true
+     | DeclareAssign(dt, e) -> true
+     | Declare(dt) -> true 
+     | NoStmt -> true
+     | _ -> false
+     
     in let rec string_of_stmt (output, locals) = function
       Block(string_of_stmts) -> 
         let l = List.fold_left string_of_stmt ("", locals) string_of_stmts 
@@ -396,15 +404,19 @@ let translate (globals, functions) =
             ^ "if(" ^ string_of_expr locals p ^ ") "
             ^ (fst (string_of_stmt ("", locals) t))
             ^ "\n else " ^ (fst (string_of_stmt ("", locals) f)), locals )
-      | For (s1, e, e2, b) ->
+      | For (s1, e, se, b) ->
         let output_pair = (string_of_stmt ("", locals) s1)
         in let init_locals = (snd output_pair)
-				in (output 
-				    ^ "for(" 
-						^ (fst output_pair) 
-            ^ string_of_expr init_locals e ^ "; " 
-            ^ string_of_stmt_expr init_locals e2 ^ ") " 
-						^ (fst (string_of_stmt ("", init_locals) b )), locals)
+        in if (check_valid_for_stmt s1) then
+         if (check_assign init_locals e (Boolean("")) true) then
+            (output 
+      				    ^ "for(" 
+      						^ (fst output_pair) 
+                  ^ string_of_expr init_locals e ^ "; " 
+                  ^ string_of_stmt_expr init_locals se ^ ") " 
+      						^ (fst (string_of_stmt ("", init_locals) b )), locals)
+          else raise (Failure ("For condition must return a boolean expression.")) 
+        else raise (Failure ("For initialization must be a valid statment."))  
       | While (e, b) ->
 				(output 
             ^ "while(" ^ string_of_expr locals e ^ ") " 
