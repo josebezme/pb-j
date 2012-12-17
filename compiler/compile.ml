@@ -219,7 +219,17 @@ let translate (globals, functions) =
             )
           | MapGet(id, key) -> true
           | ArrayGet(id, idx) -> true 
-          | Binop (e1, o, e2) -> check_assign_helper e1 dt
+          | Binop (e1, o, e2) -> (match o with
+            Seq -> true
+            | Peq -> true
+            | Greater -> true
+            | Geq -> true
+            | Less -> true
+            | Leq -> true
+            | And -> true 
+            | Or -> true
+            | _ -> false
+            )
           | StmtExpr(e) -> match_data_type match_boolean_dt check_assign_helper dt e
           | _ -> if no_raise then false else raise (Failure "Assigned double to invalid expression.")
           )
