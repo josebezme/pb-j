@@ -41,7 +41,7 @@
     * ~~Conditional (Robert)~~
     * ~~While (Robert)~~
     * ~~For (Robert)~~
-    * ~~Print~~
+    * ~~Print(Rotem)~~
 
 Section 4: Project Plan
 
