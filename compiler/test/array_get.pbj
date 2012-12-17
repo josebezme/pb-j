@@ -1,12 +1,5 @@
 master(map slaves, array args) {
-	array a = [];
-
-	long b;
-	long d;
-
-	b <- d <- 3;
-
-	long c <- a[0] <- 3;
+	array a <- [];
 
 
 	print( a[0] );
