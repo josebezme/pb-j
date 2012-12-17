@@ -4,18 +4,19 @@ master(map slaves, array args) {
 	boolean c <- true;
 	c <- b = b;
 	c <- b < |slaves| + b;
+	double d <- 2.5;
 
-	print(b + b);
-	print(b - b);
-	print(b * b);
-	print(b / b);
-	print(b % b);
-	print(a = a);
-	print(a === b);
-	print(b > b);
-	print(b >= b);
-	print(b < b);
-	print(b <= b);
+	print(b + d);
+	print(b - d);
+	print(b * d);
+	print(b / d);
+	print(b % d);
+	print(a = b);
+	print(a === "abc");
+	print(b > d);
+	print(b >= d);
+	print(b < d);
+	print(b <= d);
 	print(c || c);
 	print(c && c);
 }
