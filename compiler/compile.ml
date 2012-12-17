@@ -244,9 +244,11 @@ let translate (globals, functions) =
                   (print_acts "normActuals" (snd(acts)) locals)    
                 ^ (print_acts "slicedActuals" (fst(acts)) locals)
 								^ (print_acts "jnormActuals" je locals)
-						^ " jamSliceSpread( master, className, "
-            ^ jid ^ ", Arrays.asList(jnormActuals),"
-						^ fid ^ ", Arrays.asList(normActuals), Arrays.asList(slicedActuals)); "
+						^ "PBJOp.jamSliceSpread( master, "
+						^ "Thread.currentThread().getStackTrace()[1].getClassName(), \""
+            ^ jid ^ "\", Arrays.asList(jnormActuals), \""
+						^ fid ^ "\", Arrays.asList(normActuals), " 
+						^ "Arrays.asList((Collection<Object>[]) slicedActuals)) "
 						| (_,_) -> raise (Failure("improper Jam Spread 2.")))
 
       | Spread(f)          -> 
@@ -268,8 +270,11 @@ let translate (globals, functions) =
 	                let acts = split_actuals e in 
 											  (print_acts "normActuals" (snd(acts)) locals)    
 	                  ^ (print_acts "slicedActuals" (fst(acts)) locals)
-	                  ^ "General.sliceSpread( master, className, " 
-	                  ^ id ^ ", Arrays.asList(normActuals), Arrays.asList(slicedActuals)); "
+	                  ^ "PBJOp.sliceSpread( master, " 
+										^ "Thread.currentThread().getStackTrace()[1].getClassName(), \"" 
+	                  ^ id 
+										^ "\", Arrays.asList(normActuals), "
+										^ "Arrays.asList((Collection<Object>[]) slicedActuals)) "
 	         | _ -> raise (Failure ("Spread on non-function.")))
 (*		 | _ -> raise (Failure ("not done yet")) *)
     and string_of_expr locals = function
