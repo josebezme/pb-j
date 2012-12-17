@@ -3,7 +3,7 @@ master(map slaves, array args) {
 	long b <- 10;
 	boolean c <- true;
 	c <- b = b;
-	c <- b < |slaves|;
+	c <- b < |slaves| + b;
 
 	print(b + b);
 	print(b - b);
