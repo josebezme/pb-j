@@ -4,9 +4,10 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 import plt.pbj.*;
-import plt.pbj.master2.Master;
-import plt.pbj.master2.SlaveHandler;
 import plt.pbj.master.Job;
+import plt.pbj.master.Master;
+import plt.pbj.master.SlaveHandler;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -46,12 +47,13 @@ public class PBJOp {
 //		System.out.println(stdJam(slices));
 	}
 	
-	public static Object jamSliceSpread( 
-			Master master, String className, 
-			String jamMethod, List< Object > jamActuals,
-			String method, List< Object > inNormal, List<Collection<Object>> inSliced){
+	public static Object jam(
+				String jamMethod,
+				Object[] jamActuals,
+				String method,
+				Object[] args){
 
-		sliceSpread( master, className, method, inNormal, inSliced);
+		spread( master, className, method, inNormal, inSliced);
 		while(true){
 			try {
 				Thread.sleep(100);
@@ -104,12 +106,13 @@ private static List<String> toStringList(List<SlaveHandler> sh){
 	return shString;
 }
 
-	public static void sliceSpread( Master master, String className, String method, List< Object > inNormal, List<Collection<Object>> inSliced){
-		List<SlaveHandler> sh = master.getSlaveHandlers();
+	public static void spread(
+			String method, 
+			Object[] args){
+		List<SlaveHandler> sh = Master.master.getSlaveHandlers();
 		Map<String, Job> jobs = new HashMap<String, Job>();
 		Map<String, List<Collection<Object>>> slices;		
-		
-		master.resetSlavesDone();
+
 		
 		slices = slice(toStringList(sh), inSliced);
 		
