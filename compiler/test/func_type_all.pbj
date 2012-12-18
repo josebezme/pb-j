@@ -1,0 +1,39 @@
+master(map slaves, array args) {
+	string a <- doString();
+	long b <- doLong();
+	double c <- doDouble();
+	boolean d <- doBoolean();
+	map e <- doMap();
+	array f <- doArray();
+	print("Hello");
+}
+
+string doString() {
+	print("Did something");
+	-> "a";
+}
+
+long doLong() {
+	print("long");
+	-> 0;
+}
+
+double doDouble() {
+	print("double");
+	-> 0.0;
+}
+
+boolean doBoolean() {
+	print("boolean");
+	-> true;
+}
+
+map doMap() {
+	print("do map");
+	-> {};
+}
+
+array doArray() {
+	print("do array");
+	-> [];
+}

@@ -7,6 +7,7 @@ let parse_error s = (* Called by the parser function on error *)
 
 %token SEMI COLON LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET COMMA BAR
 %token MAP ARRAY STRING LONG DOUBLE BOOLEAN
+%token IF WHILE FOR ELSE DO
 %token NULL
 %token STARSTAR PIPE CONCAT
 %token PLUS MINUS TIMES DIVIDE MOD
@@ -25,9 +26,12 @@ let parse_error s = (* Called by the parser function on error *)
 %token <string> ID
 %token <string> LONG_LITERAL
 %token <string> DUB_LITERAL
+%token GLOBAL
 %token EOF
 
 %right JAM NOJAMFUN SPREAD
+%nonassoc NOELSE
+%nonassoc ELSE
 %left ID LBRACKET RBRACKET CONCAT
 %right RETURN
 %right ASSIGN
@@ -44,6 +48,8 @@ let parse_error s = (* Called by the parser function on error *)
 program:
   { [], [] }
   | program fdecl { fst $1, ($2 :: snd $1)}
+  | program GLOBAL vdecl ASSIGN prim_literal SEMI { ( ($3,$5) :: fst $1), snd $1 }    
+
 
 fdecl:
 	ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
@@ -87,6 +93,10 @@ prim_literal:
   | LONG_LITERAL { LongLiteral($1) }
   | DUB_LITERAL {DubLiteral($1)}
   | BOOLEAN_LITERAL { BooleanLiteral($1) }
+
+stmt_expr_opt:
+  { NoExpr }
+  | stmt_expr { $1 }
 
 stmt_expr:
   ARRAY_BEGIN expr RBRACKET ASSIGN expr { ArrayPut($1, $2, $5) }
@@ -136,6 +146,10 @@ stmt_list:
     /* nothing */  { [] }
   | stmt_list stmt { $2 :: $1 }
 
+stmt_opt:
+  SEMI { NoStmt }
+  | stmt { $1 }
+
 stmt:
   vdecl SEMI { Declare($1) }
   | stmt_expr SEMI { ExprAsStmt($1) }
@@ -143,6 +157,12 @@ stmt:
   | LBRACE stmt_list RBRACE { Block(List.rev $2) }
   | vdecl ASSIGN expr SEMI { DeclareAssign($1, $3) }
   | PRINT LPAREN expr RPAREN SEMI { Print($3) }
+  | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
+  | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7) }
+  | FOR LPAREN stmt_opt expr SEMI stmt_expr_opt RPAREN stmt
+     { For($3, $4, $6, $8) }
+  | WHILE LPAREN expr RPAREN stmt { While($3, $5) }
+  | DO stmt WHILE LPAREN expr RPAREN SEMI { DoWhile($2, $5) }
 
 
 

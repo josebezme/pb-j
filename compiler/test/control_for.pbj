@@ -1,0 +1,18 @@
+master(map slaves, array args) {
+	for(; true;) {
+		print("success");
+	}
+
+	for(long a <- 1; false;) {
+		print("success");
+	}
+
+	long b <- 3;
+
+	for(;false; b <- b + 1) {
+
+	}
+
+	for(;false;)
+		print("success");
+}

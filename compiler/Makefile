@@ -16,40 +16,6 @@ scanner.ml : scanner.mll
 %.cmo : %.ml
 	ocamlc -c $<
 
-test1.java: pbjc
-	pbjc -c test/01_main.pbj
-
-test2.java: pbjc
-	pbjc -c test/02_two_funcs.pbj
-
-null.java: pbjc
-	pbjc -c test/null.pbj
-
-pbj_spread.java: pbjc
-	pbjc -c test/pbj_spread.pbj
-
-pbj_slice_spread.java: pbjc
-	pbjc -c test/pbj_slice_spread.pbj
-
-pbj_jam_spread.java: pbjc
-	pbjc -c test/pbj_jam_spread.pbj
-
-pbj_jam_spread_default.java: pbjc
-	pbjc -c test/pbj_jam_spread_default.pbj
-
-arrays.java: pbjc
-	pbjc -c test/arrays.pbj
-
-null: pbjc
-	pbjc -b test/null.pbj
-	java null
-
-arrays: pbjc
-	pbjc -b test/arrays.pbj
-	java arrays
-
-alltests.java: test1.java test2.java
-
 .PHONY : clean
 clean :
 	rm -f pbjc scanner.ml *.cmi *.cmo parser.ml parser.mli parser.output scanner.ml

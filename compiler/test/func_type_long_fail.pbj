@@ -3,7 +3,6 @@ master(map slaves, array args) {
 	print("Hello");
 }
 
-string doSomething() {
+long doSomething() {
 	print("Did something");
-	-> "a";
 }

@@ -18,10 +18,11 @@ type literal =
 type stmt_expr = 
   Assign of string * expr
   | ArrayPut      of string * expr * expr
-  | MapPut of string * expr * expr
-  | FunctionCall of string * expr list  
+  | MapPut of string * expr * expr  
 	| Spread    of stmt_expr
 	| JamSpread of stmt_expr * stmt_expr
+  | FunctionCall of string * expr list 
+  | NoExpr 
 
 and expr = 
   StmtExpr of stmt_expr
@@ -45,7 +46,12 @@ type stmt =
   | Return of expr
   | Declare of data_type
   | DeclareAssign of data_type * expr
-  | ExprAsStmt         of stmt_expr
+  | If of expr * stmt * stmt
+  | For of stmt * expr * stmt_expr * stmt
+  | While of expr * stmt
+  | DoWhile of stmt * expr
+  | ExprAsStmt of stmt_expr
+  | NoStmt
 
 type func_decl = {
     fname : data_type;
@@ -53,7 +59,7 @@ type func_decl = {
     body : stmt list;
   }
 
-type program = data_type list * func_decl list
+type program = (data_type * literal) list * func_decl list
 
 let rec string_of_data_type = function
   String(s) -> "STRING-" ^ s
@@ -78,6 +84,7 @@ let rec string_of_stmt_expr = function
   | Spread(f)       -> "SPREAD AND CALL " ^ string_of_stmt_expr f
 	| JamSpread(f, s) -> "JAM THE RESULTS OF " ^ string_of_stmt_expr s 
                            ^ " WITH " ^ string_of_stmt_expr f
+  | NoExpr -> "NoStmtExpr"
 
 and string_of_expr = function
   StmtExpr(e) -> string_of_stmt_expr e
@@ -116,10 +123,23 @@ let rec string_of_stmt = function
       "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
   | Print(str) -> "PRINT (" ^ string_of_expr str ^ ");\n"
   | Return(e) -> "RETURN " ^ string_of_expr e ^ ";\n"
+	| If (p, t, f) -> 
+        "IF " ^ string_of_expr p 
+				    ^ " THEN DO "
+            ^ string_of_stmt t
+            ^ " ELSE DO " ^ string_of_stmt f ^ ";\n"
+  | For (s, e, se, b) -> 
+		   "DECLARE: " ^ string_of_stmt s
+	          ^ " AND DO " ^ string_of_stmt b
+						^ " WHILE " ^ string_of_expr e 
+						^ " PERFORMING " ^ string_of_stmt_expr se ^ ";\n"
+  | While (e, b) -> " WHILE " ^ string_of_expr e ^ " DO " ^ string_of_stmt b ^ ";\n"
+  | DoWhile (b, e) -> " DO " ^ string_of_stmt b ^ " WHILE " ^ string_of_expr e ^ ";\n"
   | ExprAsStmt(e) -> "EXPR: " ^ string_of_stmt_expr e ^ ";\n"
   | Declare(dt) -> "DECLARE: " ^ string_of_data_type dt ^ ";\n"
   | DeclareAssign(dt, e) -> "DECLARE: " ^ string_of_data_type dt ^ 
       " AND ASSIGN: " ^ string_of_expr e ^ ";\n"
+  | NoStmt -> "NoStmt"
 
 let string_of_fdecl fdecl =
   "FUNCTION " ^ string_of_data_type fdecl.fname ^ "(" ^ 
@@ -130,8 +150,13 @@ let string_of_fdecl fdecl =
 
 let string_of_vdecl id = "long " ^ id ^ ";\n"
 
+let string_of_globals globals = 
+  "GLOBALS " ^ string_of_data_type (fst globals) ^ " = " ^ string_of_literal (snd globals)   
+
 let string_of_program (vars, funcs) =
-  "Vars: \n" ^ String.concat ";\n" (List.map string_of_data_type vars) ^ "\n" ^
+  "Vars: \n" ^ String.concat ";\n" (List.map string_of_globals vars) ^ "\n" ^
   "Funcs: \n" ^ String.concat "\n" (List.map string_of_fdecl funcs)
+
+
 
 

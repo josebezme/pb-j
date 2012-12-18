@@ -1,0 +1,5 @@
+master(map slaves, array args){ ... Runtime argument.
+	for(long m <- 4; m <-3; m <- m + 1) { 
+		print("Result2");
+	}
+}
