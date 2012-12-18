@@ -162,4 +162,9 @@ public class MasterTestFrame extends JFrame implements ActionListener, MasterObs
 			
 		});
 	}
+
+	@Override
+	public void notifySlaveDone() {
+		System.out.println("A slave is done");
+	}
 }

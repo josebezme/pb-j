@@ -3,7 +3,10 @@ package plt.pbj.master;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -14,6 +17,8 @@ public class Master implements Runnable {
 	
 	public static int DEFAULT_PORT = 35000;
 	
+	private int slavesDone = 0;
+	
 	private int port;
 	
 	private Set<SlaveHandler> slaveHandlers = new HashSet<SlaveHandler>();
@@ -22,6 +27,8 @@ public class Master implements Runnable {
 	private ServerSocket socket;
 	private Logger logger = DefaultLogger.getDefaultLogger();
 	private boolean stopping;
+
+	public Map<String, List<Collection<Object>>> returns;
 	
 	public Master() {
 		this(DEFAULT_PORT);
@@ -57,6 +64,7 @@ public class Master implements Runnable {
 				}
 				
 				notifySlaveChange();
+				notifySlaveDone();
 			}
 			
 		} catch (IOException e) {
@@ -84,6 +92,12 @@ public class Master implements Runnable {
 		}
 	}
 	
+	private void notifySlaveDone() {
+		for(MasterObserver observer : observers) {
+			observer.notifySlaveDone();
+		}
+	}
+	
 	public void setLogger(Logger logger) {
 		this.logger = logger;
 	}
@@ -102,6 +116,7 @@ public class Master implements Runnable {
 	
 	public interface MasterObserver {
 		void notifySlaveChange();
+		void notifySlaveDone();
 	}
 
 	public Set<SlaveHandler> getSlaveHandlers() {
@@ -119,5 +134,21 @@ public class Master implements Runnable {
 				handler.sendJob(job);
 			}
 		}
+	}
+
+	public void incSlavesDone() {
+		slavesDone++;
+	}
+
+	public void resetSlavesDone() {
+		slavesDone = 0;
+	}
+	
+	public int getSlavesDone() {
+		return slavesDone;
+	}
+
+	public Map<String, List<Collection<Object>>> getReturns() {
+		return returns;
 	}
 }

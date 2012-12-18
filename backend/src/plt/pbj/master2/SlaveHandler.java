@@ -1,4 +1,4 @@
-package plt.pbj.master;
+package plt.pbj.master2;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,9 +7,11 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.channels.ClosedByInterruptException;
+import java.util.Collection;
 
 import com.google.gson.Gson;
 
+import plt.pbj.master.Job;
 import plt.pbj.Commands;
 import plt.pbj.util.DefaultLogger;
 import plt.pbj.util.Logger;
@@ -23,11 +25,15 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 	
 	private Logger logger = DefaultLogger.getDefaultLogger();
 	private PrintWriter output;
+
+	private Master master;
 	
-	public SlaveHandler(Socket s) {
+	public SlaveHandler(Socket s, Master master) {
 		this.socket = s;
+		this.master = master;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void run() {
 		try {
@@ -38,7 +44,7 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 			}
 			
 			
-			logger.log("Running slaveHandler for slave: " + getName());
+//			logger.log("Running slaveHandler for slave: " + getName());
 			output = new PrintWriter( new OutputStreamWriter(socket.getOutputStream() ));
 			BufferedReader input = new BufferedReader(new InputStreamReader( socket.getInputStream() ));
 			
@@ -48,18 +54,23 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 			String line = input.readLine();
 			
 			if(Commands.Slave.HI_BACK.equals(line)) {
-				logger.log("Got succesful hi from slave.");
+				logger.log("sh: Got succesful hi from slave. ");
+				synchronized(this) {
+					master.incSlavesConnected();
+					logger.log("sh: Slave++. ");
+					this.notifyAll();
+				}
 			} else {
-				logger.log("Hi failed, got:" + line);
+				logger.log("sh: Hi failed, got:" + line);
 			}
 			
 			// Read from slave.
-			while((line = input.readLine()) != null) {
+			while( !socket.isClosed() && (line = input.readLine()) != null) {
 				if(Commands.CLOSE.equals(line)) {
-					logger.log("Slave sent close command.");
+					logger.log("sh: Slave sent close command.");
 					break;
 				} else if(Commands.Slave.REPORT.equals(line)) {
-					logger.log("Slave sending report.");
+					logger.log("sh: Slave sending report.");
 					String data = "";
 					
 					line = input.readLine();
@@ -68,15 +79,32 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 						line = input.readLine();
 					}
 					
-					logger.log("Got data from slave: " + data);
+					logger.log("sh: Got data from slave: " + data);
 					
+				} else if( Commands.Slave.RETURN.equals(line)){
+					logger.log("sh: slave returning.");
+					String data = "";
+					line = input.readLine();
+					while(!Commands.Slave.RETURN_END.equals(line)) {
+						data += line;
+						line = input.readLine();
+					}
+					master.give(name, gson.fromJson(data, Object.class));
+//					this.notifyAll();
+//					try{
+//						master.give(name, gson.fromJson(data, Object.class));
+//					}catch (Exception e){
+//						logger.log("sh: not jamming");
+//					}
 				} else {
 					logger.log("Got invalid command: " + line);
 				}
 				// Reading line
 			}
 				
-		} catch (IOException e) {
+		}catch(java.net.SocketException e){
+			//business as usual
+		}catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -96,6 +124,17 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 		output.println(gson.toJson(job));
 		output.println(Commands.Master.JOB_END);
 		output.flush();
+	}
+
+	public void close() {
+		output.println(Commands.Master.ABORT);
+		output.flush();
+		try {
+			socket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

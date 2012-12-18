@@ -15,5 +15,7 @@ public interface Commands {
 		String HI_BACK = "#HI BACK AT YA";
 		String REPORT = "#REPORT";
 		String REPORT_END = "#REPORT_END";
+		String RETURN = "RETURN";
+		String RETURN_END = "RETURN_END";
 	}
 }

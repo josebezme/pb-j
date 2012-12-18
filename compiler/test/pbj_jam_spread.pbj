@@ -2,12 +2,13 @@ master(map slaves, array args) {
 	jam: doNext("lemon") spread: doFirst( "apple", 10, @[10,10,5]);
 }
 
-string doFirst() {
+string doFirst( String s, Long l ) {
 	print("Did something");
-	-> "hey";
+	-> 1;
 }
 
-string doNext() {
+string doNext(map slave, array args) {
 	print("Did something else");
-	-> "hey";
+	print(args[0]);
+	-> 1;
 }

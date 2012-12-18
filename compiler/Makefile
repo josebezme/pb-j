@@ -16,8 +16,8 @@ scanner.ml : scanner.mll
 %.cmo : %.ml
 	ocamlc -c $<
 
-test1.java: pbjc
-	pbjc -c test/01_main.pbj
+string_assign.java: pbjc
+	pbjc -c test/string_assign.pbj
 
 test2.java: pbjc
 	pbjc -c test/02_two_funcs.pbj
