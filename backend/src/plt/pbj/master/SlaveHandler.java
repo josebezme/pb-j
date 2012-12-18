@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.nio.channels.ClosedByInterruptException;
 
 import com.google.gson.Gson;
 
@@ -20,6 +19,7 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 	
 	private Socket socket;
 	private String name;
+	private boolean closed;
 	
 	private Logger logger = DefaultLogger.getDefaultLogger();
 	private PrintWriter output;
@@ -75,8 +75,10 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 				// Reading line
 			}
 				
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			if(closed) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -95,6 +97,17 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 		output.println(gson.toJson(job));
 		output.println(Commands.Master.JOB_END);
 		output.flush();
+	}
+	
+	public void close() {
+		output.println(Commands.CLOSE);
+		output.flush();
+		try {
+			closed = false;
+			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

@@ -1,48 +1,49 @@
 package plt.pbj.master;
 
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import plt.pbj.slave.SlaveAddress;
 import plt.pbj.util.DefaultLogger;
 import plt.pbj.util.Logger;
 
 public class Master implements Runnable {
 	
-	public static int DEFAULT_PORT = 35000;
+	public static int DEFAULT_PORT = 9001;
 	
-	private int port;
+	public static Master master;
 	
-	private Set<SlaveHandler> slaveHandlers = new HashSet<SlaveHandler>();
+	private List<SlaveHandler> slaveHandlers = new ArrayList<SlaveHandler>();
 	private Set<MasterObserver> observers = new HashSet<MasterObserver>();
 
-	private ServerSocket socket;
 	private Logger logger = DefaultLogger.getDefaultLogger();
-	private boolean stopping;
+
+	private List<SlaveAddress> addresses;
 	
-	public Master() {
-		this(DEFAULT_PORT);
+	{
+		master = this;
 	}
 	
-	public Master(int port) {
-		this.port = port;
+	public Master(List<SlaveAddress> addresses) {
+		this.addresses = addresses;
 	}
 	
 	@Override
 	public void run() {
-		try {
-			logger.log("Binding socket to port: " + port);
-			socket = new ServerSocket(port);
 			
-			while(true) {
-				logger.log("Accepting on socket...");
-				Socket slaveSocket = socket.accept();
-				
+		Socket socket;
+		for(SlaveAddress address : addresses) {
+			try {
+				logger.log("Opening connection to slave: " + address);
+				socket = new Socket(address.ip, address.port);
 				logger.log("Adding slave to pool...");
-				SlaveHandler slaveRunner = new SlaveHandler(slaveSocket);
+				SlaveHandler slaveRunner = new SlaveHandler(socket);
 				
 				synchronized (slaveRunner) {
 					
@@ -54,28 +55,31 @@ public class Master implements Runnable {
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
+
 				}
+			} catch (UnknownHostException e1) {
+				System.out.println("Unknown host for: " + address);
+				e1.printStackTrace();
 				
-				notifySlaveChange();
+			} catch (IOException e1) {
+				System.out.println("IOException for: " + address);
+				e1.printStackTrace();
 			}
-			
-		} catch (IOException e) {
-			if(!stopping) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	public void stop() {
-		try {
-			stopping = true;
-			socket.close();
-			logger.log("Closing socket on master...");
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 		
-		slaveHandlers.clear();
+		if(slaveHandlers.size() > 0) {
+			logger.log("Initialized with slaves: " + slaveHandlers);
+			// Notify that we're done.
+			synchronized (this) {
+				this.notifyAll();
+			}
+		} else {
+			System.err.println("No slaves connected.");
+			System.exit(1);
+		}
+			
+		
+			
 	}
 	
 	private void notifySlaveChange() {
@@ -104,7 +108,7 @@ public class Master implements Runnable {
 		void notifySlaveChange();
 	}
 
-	public Set<SlaveHandler> getSlaveHandlers() {
+	public List<SlaveHandler> getSlaveHandlers() {
 		return slaveHandlers;
 	}
 
@@ -118,6 +122,12 @@ public class Master implements Runnable {
 			if((job = jobs.get(handler.getName())) != null) {
 				handler.sendJob(job);
 			}
+		}
+	}
+	
+	public void close() {
+		for(SlaveHandler handler : slaveHandlers) {
+			handler.close();
 		}
 	}
 }
