@@ -133,7 +133,7 @@ public class MasterTestFrame extends JFrame implements ActionListener, MasterObs
 				jobs.put(handler.getName(), job);
 			}
 			
-			master.spreadJobs(jobs);
+//			master.spreadJobs(jobs);
 		}
 	}
 

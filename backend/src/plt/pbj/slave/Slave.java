@@ -14,14 +14,16 @@ import java.net.UnknownHostException;
 import com.google.gson.Gson;
 
 import plt.pbj.Commands;
+import plt.pbj.PBJ;
 import plt.pbj.master.Job;
 import plt.pbj.master.Master;
 import plt.pbj.util.DefaultLogger;
 import plt.pbj.util.Logger;
+import plt.pbj.util.PBJOp;
 
 public class Slave implements Runnable {
 
-	private Gson gson = new Gson();
+	private Gson gson = PBJ.gson;
 	private Logger logger = DefaultLogger.getDefaultLogger();
 	
 	private JobRunner jobRunner;
@@ -128,18 +130,14 @@ public class Slave implements Runnable {
 			try {
 				Class c = Class.forName(job.className);
 				
+				Method m = PBJOp.getMethod(job.method);
 				
-				Method m = null;
+				Object params[] = gson.fromJson(job.data, Object[].class);
+				params = PBJOp.cleanUpArray(params);
 				
-				for(Method poss : c.getMethods()) {
-					if(poss.getName().equals(job.method)) {
-						m = poss;
-					}
-				}
+				Object obj = m.invoke(null, params);
 				
-				Object params[] = new Object[]{new Long(0), new Double(0.0)};
-				
-				m.invoke(null, params);
+				result = gson.toJson(obj);
 				complete = true;
 				
 				if(!abort) {
