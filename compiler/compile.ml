@@ -255,7 +255,25 @@ let translate (globals, functions) =
         | _ -> false
       in List.exists (fun dt -> get_dt_name dt = id && is_array_helper dt) locals
 
-				
+		  in let rec match_args_dt id e functions locals=
+        if does_func_exist id functions then
+            (match functions with 
+                [] -> raise(Failure ("Failed to find func with params" ^ id ))
+                | hd :: tl ->
+                    let rec match_formals fli eli = (match (fli, eli) with
+                        | ([], []) -> true
+                        | (f::fl, e::el) -> if check_assign locals e f true then 
+                            match_formals fl el 
+                            else false
+                       | (_, _) -> false
+                )in
+                    if (get_dt_name(hd.fname) = id && (match_formals hd.formals e)) then
+                        true
+                    else
+                        match_args_dt id e tl locals
+      ) else 
+        raise(Failure("Function " ^ id ^ " does not exist with those parameters."))
+		
 				
     (* Basic recursive function for evaluating expressions *)
     in let rec string_of_stmt_expr locals = function
@@ -279,7 +297,9 @@ let translate (globals, functions) =
           id ^ ".put(" ^ string_of_expr locals key ^ ", " ^ string_of_expr locals v ^ ")"
         else
           raise (Failure (id ^ " is not a valid map type."))
-      | FunctionCall(s,e) -> s ^ "("  ^  String.concat "," (List.map (string_of_expr locals) e) ^ ")" 
+      | FunctionCall(s,e) -> if match_args_dt s e functions locals then 
+				s ^ "("  ^  String.concat "," (List.map (string_of_expr locals) e) ^ ")"
+				else raise (Failure ("failed earlier"))
       | NoExpr -> ""
       | JamSpread(f, sp)   -> 
 				(* jam: jadd(@) spread: add(@myList); *)
@@ -308,9 +328,10 @@ let translate (globals, functions) =
               (if List.length list > 0 then "(Object)" else "")
             ^ (String.concat ", (Object)" (List.map (string_of_expr locals) list)))
         in (match f with
-          FunctionCall(id, args) ->
+          FunctionCall(id, args) ->(*************HERE*****************)
                         "PBJOp.spread(" ^ id ^ ", new Object[]{ " ^ (print_acts args locals) ^ "})"
-          | _ -> raise (Failure("Spread on non-function."))))
+          | _ -> raise (Failure("Spread on non-function.")))
+					)
     and string_of_expr locals = function
       StmtExpr(e) -> string_of_stmt_expr locals e
       | Literal(l) -> string_of_literal l

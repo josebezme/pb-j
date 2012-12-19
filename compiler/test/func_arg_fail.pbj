@@ -1,0 +1,8 @@
+master(map slaves, array args) {
+	iot("Hello");
+	iot();
+}
+
+iot(string s ){
+	print(s);
+}
