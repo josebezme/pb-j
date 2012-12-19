@@ -147,6 +147,11 @@ let translate (globals, functions) =
         | JamSpread(f, sp) -> (match (f, sp) with 
           (FunctionCall(id, e), Spread(FunctionCall(id2, e2)) ) -> 
                match_func (get_func_dt id functions) && match_func (get_func_dt id2 functions)
+          | (NoExpr, Spread(FunctionCall(fid, fe))) ->
+            (match dt with
+              Array(id) -> true
+              | _ -> if no_raise then false else raise(Failure("Assigned jam to invalid type."))
+            )
           | _ -> raise (Failure ("Improper Jam/Spread.")))
         | Spread(f)        -> (match f with
               FunctionCall(id, e) -> match_func (get_func_dt id functions)
@@ -298,7 +303,9 @@ let translate (globals, functions) =
           (FunctionCall(jid, jargs), Spread(FunctionCall(fid, fe))) ->
 					  (*Object[] *)
 						jid ^ "( " ^ (print_acts_returned jargs (fid, fe) locals) ^ ")"
-						| (_,_) -> raise (Failure("improper Jam Spread 2."))))
+          | (NoExpr, Spread(FunctionCall(fid, args))) ->
+            "PBJOp.jam(\"" ^ fid ^ "\", new Object[]{ " ^ (print_acts args locals) ^ "})"
+					| (_,_) -> raise (Failure("improper Jam Spread 2."))))
       | Spread(f)          -> 
 				(let print_acts list locals = (
               (if List.length list > 0 then "(Object)" else "")
@@ -307,6 +314,7 @@ let translate (globals, functions) =
           FunctionCall(id, args) ->
                         "PBJOp.spread(\"" ^ id ^ "\", new Object[]{ " ^ (print_acts args locals) ^ "})"
           | _ -> raise (Failure("Spread on non-function."))))
+
     and string_of_expr locals = function
       StmtExpr(e) -> string_of_stmt_expr locals e
       | Literal(l) -> string_of_literal l

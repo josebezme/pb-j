@@ -105,7 +105,7 @@ stmt_expr:
   | ID LPAREN actuals_opt RPAREN { FunctionCall($1,$3) }    
 	| SPREAD stmt_expr             { Spread($2) }
 	| JAM stmt_expr SPREAD stmt_expr { JamSpread($2, Spread($4)) }
-	| JAM %prec NOJAMFUN stmt_expr { JamSpread( FunctionCall("stdJam", []), $2) }
+	| JAM %prec NOJAMFUN stmt_expr { JamSpread( NoExpr, $2) }
 
 expr:
   stmt_expr { StmtExpr($1) }

@@ -38,7 +38,7 @@ and expr =
   | MapValues of string
   | Size of string
   | Concat of expr * expr
-  | At            of expr
+  | At of expr
 
 type stmt =
     Block of stmt list

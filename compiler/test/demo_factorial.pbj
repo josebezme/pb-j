@@ -10,7 +10,7 @@ master(map slaves, array args){ ... Runtime argument.
 
 ... spread the starting points to the slaves
 	...long result <- 
-	jam: jamFactor(@) spread: factor(@searchStarts, iterations);
+...	jam: jamFactor(@) spread: factor(@searchStarts, iterations);
 	...print("Result: " ~ result);
 }
 

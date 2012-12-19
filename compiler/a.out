@@ -1,0 +1,54 @@
+package plt.pbj;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+public class PBJRunner {
+public static List<Object> doArray(){
+System.out.println("do array");
+return new ArrayList<Object> (Arrays.asList());
+
+}
+
+public static Map<Object, Object> doMap(){
+System.out.println("do map");
+return plt.pbj.util.MapUtil.toMap(new Object[]{});
+
+}
+
+public static Boolean doBoolean(){
+System.out.println("boolean");
+return true;
+
+}
+
+public static Double doDouble(){
+System.out.println("double");
+return new Double(0.0);
+
+}
+
+public static Long doLong(){
+System.out.println("long");
+return new Long(0);
+
+}
+
+public static String doString(){
+System.out.println("Did something");
+return "a";
+
+}
+
+public static void master(Map<Object, Object> slaves, List<Object> args){
+String a = doString();
+Long b = doLong();
+Double c = doDouble();
+Boolean d = doBoolean();
+Map<Object, Object> e = doMap();
+List<Object> f = doArray();
+System.out.println("Hello");
+
+}
+
+}
