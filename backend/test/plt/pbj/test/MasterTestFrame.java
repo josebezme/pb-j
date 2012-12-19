@@ -109,11 +109,10 @@ public class MasterTestFrame extends JFrame implements ActionListener, MasterObs
 	public void actionPerformed(ActionEvent event) {
 		if(event.getSource() == runMaster) {
 			if(master == null) {
-				master = new Master();
-				master.addObserver(this);
-				new Thread(master).start();
+//				master = new Master();
+//				master.addObserver(this);
+//				new Thread(master).start();
 			} else {
-				master.stop();
 				master = null;
 			}
 			
@@ -134,7 +133,7 @@ public class MasterTestFrame extends JFrame implements ActionListener, MasterObs
 				jobs.put(handler.getName(), job);
 			}
 			
-			master.spreadJobs(jobs);
+//			master.spreadJobs(jobs);
 		}
 	}
 

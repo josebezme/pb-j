@@ -143,6 +143,13 @@ let translate (globals, functions) =
         | MapPut(id, key, e) -> check_func e dt 
         | ArrayPut(id, idx, e) -> check_func e dt 
         | Assign(id, e) -> check_func e dt 
+        | JamSpread(f, sp) -> (match (f, sp) with 
+          (FunctionCall(id, e), Spread(FunctionCall(id2, e2)) ) -> 
+               match_func (get_func_dt id functions) && match_func (get_func_dt id2 functions)
+          | _ -> raise (Failure ("Improper Jam/Spread.")))
+        | Spread(f)        -> (match f with
+              FunctionCall(id, e) -> match_func (get_func_dt id functions)
+            | _ -> raise (Failure ("Improper Spread.")))
         | NoExpr -> if no_raise then false else raise(Failure("Assigned " ^ get_dt_name dt ^ " "))
 
       in let rec check_assign_helper e dt = match dt with
@@ -248,6 +255,8 @@ let translate (globals, functions) =
         | _ -> false
       in List.exists (fun dt -> get_dt_name dt = id && is_array_helper dt) locals
 
+				
+				
     (* Basic recursive function for evaluating expressions *)
     in let rec string_of_stmt_expr locals = function
       Assign(s, e) ->   
@@ -272,7 +281,36 @@ let translate (globals, functions) =
           raise (Failure (id ^ " is not a valid map type."))
       | FunctionCall(s,e) -> s ^ "("  ^  String.concat "," (List.map (string_of_expr locals) e) ^ ")" 
       | NoExpr -> ""
-
+      | JamSpread(f, sp)   -> 
+				(* jam: jadd(@) spread: add(@myList); *)
+        (* create a map from slave to job where job is*)
+        (*pass the actuals*)
+				(let print_acts list locals = (
+              (if List.length list > 0 then "(Object)" else "")
+            ^ (String.concat ", (Object)" (List.map (string_of_expr locals) list))
+            )
+				in let p_r_helper x f locals = (match x with
+             | At(_)    -> "PBJOp.jam( \"" ^ (fst(f)) ^ "\", new Object[]{" 
+						  ^ (print_acts (snd(f)) locals) ^ "})"
+             | l        -> string_of_expr locals l)
+				in let print_acts_returned actlist f locals = (
+             (if List.length actlist > 0 then "(Object)" else "")
+            ^ (String.concat ", (Object)" (List.map (fun x -> (p_r_helper x f locals)) actlist))
+            )
+        in (match (f, sp) with
+				(*Spread(FunctionCall(fid, fe))*)
+          (FunctionCall(jid, jargs), Spread(FunctionCall(fid, fe))) ->
+					  (*Object[] *)
+						jid ^ "( " ^ (print_acts_returned jargs (fid, fe) locals) ^ ")"
+						| (_,_) -> raise (Failure("improper Jam Spread 2."))))
+      | Spread(f)          -> 
+				(let print_acts list locals = (
+              (if List.length list > 0 then "(Object)" else "")
+            ^ (String.concat ", (Object)" (List.map (string_of_expr locals) list)))
+        in (match f with
+          FunctionCall(id, args) ->
+                        "PBJOp.spread(" ^ id ^ ", new Object[]{ " ^ (print_acts args locals) ^ "})"
+          | _ -> raise (Failure("Spread on non-function."))))
     and string_of_expr locals = function
       StmtExpr(e) -> string_of_stmt_expr locals e
       | Literal(l) -> string_of_literal l
@@ -358,6 +396,7 @@ let translate (globals, functions) =
       | Concat(e1, e2) ->
         (* Start it off with an empty string so java knows to concat any numeric values vs addition. *)
         "(\"\" + " ^ string_of_expr locals e1 ^ " + " ^ string_of_expr locals e2 ^ ")" 
+			| At(e)               ->  "new Spreadable((Object) " ^ string_of_expr locals e ^ ")"
       | Id(s) -> 
         (* Ensures that the used id is within the current scope *)
         if(List.exists (fun dt -> get_dt_name dt = s) locals) then
