@@ -16,6 +16,9 @@ let parse_error s = (* Called by the parser function on error *)
 %token ASSIGN
 %token RETURN
 %token PRINT
+%token AT
+%token SPREAD
+%token JAM
 %token <string> ARRAY_BEGIN
 %token <bool> BOOLEAN_LITERAL
 %token <string> STRING_LITERAL
@@ -26,6 +29,7 @@ let parse_error s = (* Called by the parser function on error *)
 %token GLOBAL
 %token EOF
 
+%right JAM NOJAMFUN SPREAD
 %nonassoc NOELSE
 %nonassoc ELSE
 %left ID LBRACKET RBRACKET CONCAT
@@ -67,6 +71,8 @@ actuals_opt:
 
 actuals_list:
     expr                    { [$1] }
+  | AT expr                 { [At($2)] }
+  | actuals_list COMMA AT expr { At($4) :: $1 }  
   | actuals_list COMMA expr { $3 :: $1 }  
 
 map_entry_list:
@@ -97,6 +103,9 @@ stmt_expr:
   | ID LBRACE expr RBRACE ASSIGN expr { MapPut($1, $3, $6) }
   | ID ASSIGN expr   { Assign($1,$3) }
   | ID LPAREN actuals_opt RPAREN { FunctionCall($1,$3) }    
+	| SPREAD stmt_expr             { Spread($2) }
+	| JAM stmt_expr SPREAD stmt_expr { JamSpread($2, Spread($4)) }
+	| JAM %prec NOJAMFUN stmt_expr { JamSpread( FunctionCall("stdJam", []), $2) }
 
 expr:
   stmt_expr { StmtExpr($1) }

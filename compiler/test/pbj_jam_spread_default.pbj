@@ -1,0 +1,8 @@
+master(map slaves, array args) {
+	jam: spread: doIt( "apple", 10, @[10,10,5]);
+}
+
+string doIt() {
+	print("Did something");
+	-> "hey";
+}

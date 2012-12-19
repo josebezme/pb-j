@@ -1,0 +1,9 @@
+master(map slaves, array args) {
+	spread: doSomething( "apple", 10);
+	long i <- 1;
+}
+
+string doSomething() {
+	print("Did something");
+	-> "hey";
+}
