@@ -4,7 +4,8 @@ let imports =
   "import java.util.ArrayList;\n" ^
   "import java.util.Arrays;\n" ^
   "import java.util.List;\n" ^
-  "import java.util.Map;\n"
+  "import java.util.Map;\n" ^ 
+  "import plt.pbj.util.PBJOp;\n"
 
 let translate (globals, functions) =
   
@@ -309,7 +310,7 @@ let translate (globals, functions) =
             ^ (String.concat ", (Object)" (List.map (string_of_expr locals) list)))
         in (match f with
           FunctionCall(id, args) ->
-                        "PBJOp.spread(" ^ id ^ ", new Object[]{ " ^ (print_acts args locals) ^ "})"
+                        "PBJOp.spread(\"" ^ id ^ "\", new Object[]{ " ^ (print_acts args locals) ^ "})"
           | _ -> raise (Failure("Spread on non-function."))))
     and string_of_expr locals = function
       StmtExpr(e) -> string_of_stmt_expr locals e
@@ -396,7 +397,7 @@ let translate (globals, functions) =
       | Concat(e1, e2) ->
         (* Start it off with an empty string so java knows to concat any numeric values vs addition. *)
         "(\"\" + " ^ string_of_expr locals e1 ^ " + " ^ string_of_expr locals e2 ^ ")" 
-			| At(e)               ->  "new Spreadable((Object) " ^ string_of_expr locals e ^ ")"
+			| At(e)               ->  "new Spreadable( " ^ string_of_expr locals e ^ ")"
       | Id(s) -> 
         (* Ensures that the used id is within the current scope *)
         if(List.exists (fun dt -> get_dt_name dt = s) locals) then
