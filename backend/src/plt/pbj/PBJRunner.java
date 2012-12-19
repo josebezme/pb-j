@@ -11,32 +11,12 @@ public class PBJRunner {
 	public static void master(Map<Object, Object> slaves, List<Object> args){
 		
 		List<Object> list = new ArrayList<Object>();
-		list.add("args");
-		
-		String result = (String) PBJOp.spread("test", new Object[]{new Spreadable(list)});
-		System.out.println("Spread Result: " + result);
-		
-		list.clear();
 		list.add(new Long(1));
 		list.add(new Long(2));
-		list.add(new Long(3));
-		list.add(new Long(4));
-		list.add(new Long(5));
-		list.add(new Long(6));
-		list.add(new Long(7));
 		
-		List<Object> objs = PBJOp.jam("add", new Object[]{ new Spreadable(list)});
-		Long result_l = add(objs);
+		Object obj = PBJOp.spread("test", new Object[]{ new Spreadable(list)});
 		
-//		try {
-//			Thread.sleep(3000);
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}		
-		
-		Long l = add(list);
-		System.out.println("Jam Result: " + result_l);
-		System.out.println("Should be:  " + l);
+		System.out.println("Jam Result: " + obj);
 
 	}
 	
@@ -52,15 +32,22 @@ public class PBJRunner {
 	
 	public static String test(List<Object> arg1) {
 		
-		int r = new Random().nextInt(3);
+//		int r = new Random().nextInt(3);
+		Long l = (Long) arg1.get(0);
 		
-		try {
-			Thread.sleep(r * 1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		if(l == 1) {
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			return "1";
 		}
 		
-		return "It worked";
+		
+		
+		return null;
 	}
 
 }

@@ -96,17 +96,21 @@ public class PBJOp {
 		Object result = null;
 		synchronized (SlaveHandler.WAIT) {
 			startSpread(method, args);
-		
-			try {
-				SlaveHandler.WAIT.wait();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			
-			for(SlaveHandler handler : Master.master.getSlaveHandlers()) {
-				if(handler.success()) {
-					result = correctResult(handler, method);
-					break;
+			outer : while(true) {
+				try {
+					SlaveHandler.WAIT.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				
+				for(SlaveHandler handler : Master.master.getSlaveHandlers()) {
+					if(handler.success()) {
+						result = correctResult(handler, method);
+						
+						if(result != null) {
+							break outer;
+						}
+					}
 				}
 			}
 		}
