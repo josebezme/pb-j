@@ -1,0 +1,34 @@
+master(map slaves, array args){ ... Runtime argument.
+	long n <- args[0]; 
+	array searchStarts;
+
+... get the place for each slave to start
+	long iterations <- n / |slaves|; ... size of slaves
+	for(long m <- 0; m < |slaves|; m <- m + 1) { 
+		searchStarts[m] <- iterations * m; 
+	}
+
+... spread the starting points to the slaves
+	...long result <- 
+...	jam: jamFactor(@) spread: factor(@searchStarts, iterations);
+	...print("Result: " ~ result);
+}
+
+long jamFactor(array results) {
+	long x <- 1;
+	for(long i <- 0; i < |results|; i <- i + 1) {
+		x <- x * results[i];
+	}
+	-> x;
+}
+
+long factor(array startarr, long iterations) {
+	long start <- startarr[0];
+	long x <- start;
+	long temp;
+	for(long i <- 1; i < iterations; i <- i + 1) {
+		temp <- start + i;
+		x <- x * temp;
+	}
+	-> x; ...no evidence that it is not prime
+}

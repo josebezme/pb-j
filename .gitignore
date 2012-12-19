@@ -1,6 +1,8 @@
 *.class
 *.output
 
+distro/plt
+
 scanner.ml
 parser.mli
 parser.ml

@@ -1,10 +1,22 @@
 package plt.pbj;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 
 import plt.pbj.master.Master;
 import plt.pbj.master.SlaveHandler;
@@ -12,6 +24,23 @@ import plt.pbj.slave.Slave;
 import plt.pbj.slave.SlaveAddress;
 
 public class PBJ {
+	public static Gson gson = new GsonBuilder()
+			.registerTypeAdapter(Double.class, new JsonSerializer<Double>() {
+				@Override
+				public JsonElement serialize(Double d, Type arg1,
+						JsonSerializationContext arg2) {
+					return new JsonPrimitive("d_" + d);
+				}
+			})
+			.registerTypeAdapter(Long.class, new JsonSerializer<Long>() {
+				@Override
+				public JsonElement serialize(Long l, Type arg1,
+						JsonSerializationContext arg2) {
+					return new JsonPrimitive("l_" + l);
+				}
+			}).create();
+	
+	
 	public static void main(String[] args) {
 		if(args.length < 1) {
 			printUsage();
@@ -80,6 +109,8 @@ public class PBJ {
 					// Done waiting... run that shit.
 					
 					Object[] masterArgs = Arrays.copyOfRange(args, 1, args.length);
+					System.out.println("args: " + Arrays.toString(args));
+					System.out.println("master args: " + Arrays.toString(masterArgs));
 					
 					Map<Object, Object> slaves = new HashMap<Object, Object>();
 					

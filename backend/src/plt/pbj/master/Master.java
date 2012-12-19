@@ -116,12 +116,9 @@ public class Master implements Runnable {
 	 * 
 	 * @param jobs <Slave Name, Job>
 	 */
-	public void spreadJobs(Map<String, Job> jobs) {
-		Job job = null;
+	public void spreadJobs(Map<SlaveHandler, Job> jobs) {
 		for(SlaveHandler handler : slaveHandlers) {
-			if((job = jobs.get(handler.getName())) != null) {
-				handler.sendJob(job);
-			}
+			handler.sendJob(jobs.get(handler));
 		}
 	}
 	

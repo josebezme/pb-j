@@ -1,24 +1,39 @@
 master(map slaves, array args){ ... Runtime argument.
-	long bigPrime <- args[0]; 
-array searchStarts;
+	long n <- args[0]; 
+	array searchStarts;
 
 ... get the place for each slave to start
-	long iterations <- bigPrime / 3 / |slaves|; ... size of slaves
+	long iterations <- (n / |slaves|) - 1; ... size of slaves
+	long start <- 1;
 	for(long m <- 0; m < |slaves|; m <- m + 1) { 
-		searchStarts[m] <- iterations * m; 
+		searchStarts[m] <- start + (m * 2);
 	}
 
 ... spread the starting points to the slaves
-...long result <- spread: factor(@searchStarts, bigPrime, iterations);
-...print("Result: " ~ result);
+	array result <- jam: spread: factor(@searchStarts, n, |slaves|);
+	print("Result: " ~ result);
 }
 
-long factor(array mylist, long prime, long iterations) {
-	long start <- mylist[0];
-...	for(long i <- start; i < iterations	; i <- i + 1) {
-	...	if(prime % i = 0 ) { ...it is not prime
-...			-> i;
-		...}
-...	}
-	-> null; ...no evidence that it is not prime
+array factor(array starts, long n, long slaves) {
+	long start <- starts[0];
+
+	array factors;
+	... Check special case for 2.
+	if(start = 1) {
+		if(n % 2 = 0) {
+			factors[|factors|] <- 2;
+		}
+	}
+
+	for(long i <- start; i <= n / 2; i <- i + (2 * slaves)) {
+		print("Trying " ~ i);
+		if( i > 1 && n % i = 0) { ...it is not prime
+			factors[|factors|] <- i;
+		}
+	}
+
+	if(|factors| > 0) {
+		-> factors;
+	} 
+	-> null;
 }

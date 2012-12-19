@@ -10,22 +10,32 @@ import java.net.Socket;
 import com.google.gson.Gson;
 
 import plt.pbj.Commands;
+import plt.pbj.PBJ;
 import plt.pbj.util.DefaultLogger;
 import plt.pbj.util.Logger;
 
 public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 	
-	private static final Gson gson = new Gson();
+	public static final String WAIT = "Waiting On Slaves";
+	
+	private static final Gson gson = PBJ.gson;
 	
 	private Socket socket;
 	private String name;
 	private boolean closed;
+	private String result;
 	
 	private Logger logger = DefaultLogger.getDefaultLogger();
 	private PrintWriter output;
+
+	private boolean success;
 	
 	public SlaveHandler(Socket s) {
 		this.socket = s;
+	}
+	
+	public SlaveHandler(String name) {
+		this.name = name;
 	}
 
 	@Override
@@ -36,7 +46,6 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 			synchronized(this) {
 				this.notifyAll();
 			}
-			
 			
 			logger.log("Running slaveHandler for slave: " + getName());
 			output = new PrintWriter( new OutputStreamWriter(socket.getOutputStream() ));
@@ -69,6 +78,15 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 					}
 					
 					logger.log("Got data from slave: " + data);
+					// Assign result.
+					
+					synchronized(WAIT) {
+						result = data;						
+						success = true;
+						
+						WAIT.notifyAll();
+					}
+
 				} else {
 					logger.log("Got invalid command: " + line);
 				}
@@ -76,7 +94,7 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 			}
 				
 		} catch (Exception e) {
-			if(closed) {
+			if(!closed) {
 				e.printStackTrace();
 			}
 		}
@@ -84,6 +102,14 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 	
 	public String getName() {
 		return name;
+	}
+	
+	public String getResult() {
+		return result;
+	}
+	
+	public boolean success() {
+		return this.success;
 	}
 
 	@Override
@@ -100,14 +126,17 @@ public class SlaveHandler implements Runnable, Comparable<SlaveHandler> {
 	}
 	
 	public void close() {
-		output.println(Commands.CLOSE);
-		output.flush();
 		try {
-			closed = false;
+			closed = true;
 			socket.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return "SlaveHandler[" + name + "]";
 	}
 
 }

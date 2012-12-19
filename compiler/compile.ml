@@ -4,7 +4,8 @@ let imports =
   "import java.util.ArrayList;\n" ^
   "import java.util.Arrays;\n" ^
   "import java.util.List;\n" ^
-  "import java.util.Map;\n"
+  "import java.util.Map;\n" ^ 
+  "import plt.pbj.util.PBJOp;\n"
 
 let translate (globals, functions) =
   
@@ -19,14 +20,14 @@ let translate (globals, functions) =
       | Void(id) -> id
 
     (* Returns the java declaration of a datatype *)
-  in let rec string_of_data_type = function
-      String(id) -> "String " ^ id
-      | Map(id) -> "Map<Object, Object> " ^ id
-      | Array(id) -> "List<Object> " ^ id
-      | Boolean(id) -> "Boolean " ^ id
-      | Long(id) -> "Long " ^ id
-      | Double(id) -> "Double " ^ id
-      | Void(id) -> "void " ^ id
+  in let rec string_of_data_type with_id = function
+      String(id) -> "String " ^ (if with_id then id else "")
+      | Map(id) -> "Map<Object, Object> " ^ (if with_id then id else "")
+      | Array(id) -> "List<Object> " ^ (if with_id then id else "")
+      | Boolean(id) -> "Boolean " ^ (if with_id then id else "")
+      | Long(id) -> "Long " ^ (if with_id then id else "")
+      | Double(id) -> "Double " ^ (if with_id then id else "")
+      | Void(id) -> "void " ^ (if with_id then id else "")
 
    (* Turns a literal object into a java expr *)
     in let rec string_of_literal = function
@@ -45,7 +46,7 @@ let translate (globals, functions) =
 
     (* Translate a global *)
   in let translate_globals global =
-    "public static final " ^ string_of_data_type (fst global) ^ " = " ^ string_of_literal (snd global) ^ "; \n"  
+    "public static final " ^ (string_of_data_type true (fst global)) ^ " = " ^ string_of_literal (snd global) ^ "; \n"  
 
   (* Translate a function with given env *)
   in let translate_helper fdecl =
@@ -60,9 +61,9 @@ let translate (globals, functions) =
       String(id) -> "\"\""
       | Array(id) -> "new ArrayList<Object>()"
       | Map(id) -> "new HashMap<Object, Object>()"
-      | Long(id) -> "0L"
-      | Double(id) -> "0.0"
-      | Boolean(id) -> "false"
+      | Long(id) -> "new Long(0L)"
+      | Double(id) -> "new Double(0.0)"
+      | Boolean(id) -> "new Boolean(false)"
       | _ -> raise(Failure "No default initialization for this data_type.")
 
     in let get_dt_from_name name locals =
@@ -146,6 +147,11 @@ let translate (globals, functions) =
         | JamSpread(f, sp) -> (match (f, sp) with 
           (FunctionCall(id, e), Spread(FunctionCall(id2, e2)) ) -> 
                match_func (get_func_dt id functions) && match_func (get_func_dt id2 functions)
+          | (NoExpr, Spread(FunctionCall(fid, fe))) ->
+            (match dt with
+              Array(id) -> true
+              | _ -> if no_raise then false else raise(Failure("Assigned jam to invalid type."))
+            )
           | _ -> raise (Failure ("Improper Jam/Spread.")))
         | Spread(f)        -> (match f with
               FunctionCall(id, e) -> match_func (get_func_dt id functions)
@@ -235,6 +241,7 @@ let translate (globals, functions) =
             | Leq -> true
             | And -> true 
             | Or -> true
+            | Neq -> true
             | _ -> false
             )
           | StmtExpr(e) -> match_data_type match_boolean_dt check_assign_helper dt e
@@ -273,24 +280,19 @@ let translate (globals, functions) =
                         match_args_dt id e tl locals
       ) else 
         raise(Failure("Function " ^ id ^ " does not exist with those parameters."))
-		
 				
     (* Basic recursive function for evaluating expressions *)
     in let rec string_of_stmt_expr locals = function
       Assign(s, e) ->   
         (* Before we assign, ensure the assignment is valid *)
         let dt = List.find (fun dt -> get_dt_name dt = s) locals in
-        s ^ "=" ^ string_of_assignment locals dt e
+        s ^ "=" ^ "(" ^ (string_of_data_type false dt) ^ ")" ^ string_of_assignment locals dt e
           
       | ArrayPut(id, idx, e) -> 
         if check_array_index locals idx then
-                     id
-                     ^ ".set(" 
-                     ^ string_of_expr locals idx 
-                     ^ ".intValue()"
-                     ^ ", " 
-                     ^ string_of_expr locals e 
-                     ^ ")"
+                     "plt.pbj.util.ArrayUtil.set(" ^ id ^ ","
+                     ^ string_of_expr locals idx ^ ", " 
+                     ^ string_of_expr locals e ^ ")"
         else
           raise (Failure "Should have failed before here.")
       | MapPut(id, key, v) -> if is_map locals id then
@@ -322,67 +324,71 @@ let translate (globals, functions) =
           (FunctionCall(jid, jargs), Spread(FunctionCall(fid, fe))) ->
 					  (*Object[] *)
 						jid ^ "( " ^ (print_acts_returned jargs (fid, fe) locals) ^ ")"
-						| (_,_) -> raise (Failure("improper Jam Spread 2."))))
+          | (NoExpr, Spread(FunctionCall(fid, args))) ->
+            "PBJOp.jam(\"" ^ fid ^ "\", new Object[]{ " ^ (print_acts args locals) ^ "})"
+					| (_,_) -> raise (Failure("improper Jam Spread 2."))))
       | Spread(f)          -> 
 				(let print_acts list locals = (
               (if List.length list > 0 then "(Object)" else "")
             ^ (String.concat ", (Object)" (List.map (string_of_expr locals) list)))
         in (match f with
-          FunctionCall(id, args) ->(*************HERE*****************)
-                        "PBJOp.spread(" ^ id ^ ", new Object[]{ " ^ (print_acts args locals) ^ "})"
-          | _ -> raise (Failure("Spread on non-function.")))
-					)
+          FunctionCall(id, args) ->
+                        "PBJOp.spread(\"" ^ id ^ "\", new Object[]{ " ^ (print_acts args locals) ^ "})"
+          | _ -> raise (Failure("Spread on non-function."))))
+
     and string_of_expr locals = function
       StmtExpr(e) -> string_of_stmt_expr locals e
       | Literal(l) -> string_of_literal l
       | Binop (e1, o, e2) -> 
-	  let dt_long = Long("Temp1") in
-	  let dt_doub = Double("Temp2") in
-	  let dt_str = String("Temp3") in
-	  let dt_bool = Boolean("Temp4") in
-	  let dt_array = Array("Temp5") in
-	  let dt_map = Map("Temp6") in
-	  let check_binop_type locals =
-	    (* Expressions must be booleans for logical ops *)
-	    if (o = And || o = Or) then 
-	      check_assign locals e1 dt_bool true && check_assign locals e2 dt_bool true
-	    (* All datatypes are java objects so expression can be any type for .equals() *)
-	    else if o = Seq then true
-	    (* Expression must be the same type for == *)
-	    else if o = Peq then
-	      (check_assign locals e1 dt_long true && check_assign locals e2 dt_long true) ||
-	      (check_assign locals e1 dt_doub true && check_assign locals e2 dt_doub true) ||
-	      (check_assign locals e1 dt_str true && check_assign locals e2 dt_str true) ||
-	      (check_assign locals e1 dt_bool true && check_assign locals e2 dt_bool true) ||
-	      (check_assign locals e1 dt_array true && check_assign locals e2 dt_array true) ||
-	      (check_assign locals e1 dt_map true && check_assign locals e2 dt_map true)
-            (* Expressions must be long or double for arith and comp ops *)
-	    else 
-	      (check_assign locals e1 dt_long true || check_assign locals e1 dt_doub true) 
-		&& (check_assign locals e2 dt_long true || check_assign locals e2 dt_doub true)
-	  in let op_string =   
-	    (match o with
-	      Add -> "+"
-	    | Sub -> "-"
-	    | Mult -> "*"
-	    | Div -> "/"
-	    | Mod -> "%"
-	    | Seq -> ".equals("
-	    | Peq -> "=="
-	    | Greater -> ">"
-	    | Geq -> ">="
-	    | Less -> "<"
-	    | Leq -> "<="
-	    | And -> "&&"
-	    | Or -> "||") in
-	  if check_binop_type locals then
-	    let line = string_of_expr locals e1 ^ op_string in 
-	    if o = Seq then line ^ string_of_expr locals e2 ^ ")"
-	    else line ^ string_of_expr locals e2
-	  else 
-	    if (o = And || o = Or) then raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be type Boolean"))
-	    else if o = Peq then raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be the same type"))
-	    else raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be type Long or Double"))
+    	  let dt_long = Long("Temp1") in
+    	  let dt_doub = Double("Temp2") in
+    	  let dt_str = String("Temp3") in
+    	  let dt_bool = Boolean("Temp4") in
+    	  let dt_array = Array("Temp5") in
+    	  let dt_map = Map("Temp6") in
+    	  let check_binop_type locals =
+    	    (* Expressions must be booleans for logical ops *)
+    	    if (o = And || o = Or) then 
+    	      check_assign locals e1 dt_bool true && check_assign locals e2 dt_bool true
+    	    (* All datatypes are java objects so expression can be any type for .equals() *)
+    	    else if o = Seq then true
+    	    (* Expression must be the same type for == *)
+    	    else if o = Peq then
+    	      (check_assign locals e1 dt_long true && check_assign locals e2 dt_long true) ||
+    	      (check_assign locals e1 dt_doub true && check_assign locals e2 dt_doub true) ||
+    	      (check_assign locals e1 dt_str true && check_assign locals e2 dt_str true) ||
+    	      (check_assign locals e1 dt_bool true && check_assign locals e2 dt_bool true) ||
+    	      (check_assign locals e1 dt_array true && check_assign locals e2 dt_array true) ||
+    	      (check_assign locals e1 dt_map true && check_assign locals e2 dt_map true)
+                (* Expressions must be long or double for arith and comp ops *)
+    	    else 
+    	      (check_assign locals e1 dt_long true || check_assign locals e1 dt_doub true) 
+    		&& (check_assign locals e2 dt_long true || check_assign locals e2 dt_doub true)
+    	  in let op_string =   
+    	    (match o with
+    	      Add -> "+"
+    	    | Sub -> "-"
+    	    | Mult -> "*"
+    	    | Div -> "/"
+    	    | Mod -> "%"
+    	    | Peq -> "=="
+    	    | Greater -> ">"
+    	    | Geq -> ">="
+    	    | Less -> "<"
+    	    | Leq -> "<="
+    	    | And -> "&&"
+    	    | Or -> "||"
+          | _ -> "") in
+    	  if check_binop_type locals then (match o with
+          Seq -> "(" ^ string_of_expr locals e1 ^ ".equals(" ^ string_of_expr locals e2 ^ "))"
+          | Neq -> "(!" ^ string_of_expr locals e1 ^ ".equals(" ^ string_of_expr locals e2 ^ "))"
+          | Mod -> "(Long.valueOf(" ^ string_of_expr locals e1 ^ op_string ^ string_of_expr locals e2 ^ "))"
+          | _ -> "(" ^ string_of_expr locals e1 ^ op_string ^ string_of_expr locals e2 ^ ")"
+          )
+    	  else 
+    	    if (o = And || o = Or) then raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be type Boolean"))
+    	    else if o = Peq then raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be the same type"))
+    	    else raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be type Long or Double"))
       | MapLiteral(ml) -> into_map ("new Object[]{" ^
           String.concat "," (List.map (fun (d,e) -> string_of_literal d ^ "," ^ string_of_expr locals e) ml) ^ 
           "}")
@@ -411,13 +417,13 @@ let translate (globals, functions) =
         else
           raise (Failure (id ^ " is not a valid map type."))
       | Size(id) -> if (is_map locals id || is_array locals id) then
-          id ^ ".size()"
+          "new Long(" ^ id ^ ".size())"
         else
           raise (Failure (id ^ " is not a valid map or array."))
       | Concat(e1, e2) ->
         (* Start it off with an empty string so java knows to concat any numeric values vs addition. *)
         "(\"\" + " ^ string_of_expr locals e1 ^ " + " ^ string_of_expr locals e2 ^ ")" 
-			| At(e)               ->  "new Spreadable((Object) " ^ string_of_expr locals e ^ ")"
+			| At(e)               ->  "new Spreadable( " ^ string_of_expr locals e ^ ")"
       | Id(s) -> 
         (* Ensures that the used id is within the current scope *)
         if(List.exists (fun dt -> get_dt_name dt = s) locals) then
@@ -430,8 +436,8 @@ let translate (globals, functions) =
     and string_of_assignment locals dt e =
       if check_assign locals e dt false then
          (match dt with 
-          Long(s) -> "Long.parseLong(\"\" + (" ^ string_of_expr locals e ^ "))" 
-          | Double(s) -> "Double.parseDouble(\"\" + (" ^ string_of_expr locals e ^ "))"
+          Long(s) -> "Long.valueOf(\"\" + (" ^ string_of_expr locals e ^ "))" 
+          | Double(s) -> "Double.valueOf(\"\" + (" ^ string_of_expr locals e ^ "))"
           | String(s) -> "\"\" + (" ^ string_of_expr locals e ^ ")"
           | _ -> string_of_expr locals e
         )
@@ -453,7 +459,7 @@ let translate (globals, functions) =
     in let rec string_of_stmt (output, locals) = function
       Block(string_of_stmts) -> 
         let l = List.fold_left string_of_stmt ("", locals) string_of_stmts 
-        in (output ^ "{\n" ^ (fst l) ^ "\n}\n", locals)
+        in (output ^ "{\n" ^ (fst l) ^ "}\n", locals)
       | Print(s) -> (output ^ "System.out.println(" ^ string_of_expr locals s ^ ");\n", locals)
 			| If (p, t, Block([])) -> 
 				(output 
@@ -497,21 +503,23 @@ let translate (globals, functions) =
         if List.exists (fun dt -> get_dt_name dt = name) locals then
           raise (Failure ("Variable " ^ name ^ " has already been declared."))
         else
-          (output ^ string_of_data_type dt ^ " = " ^ default_init dt ^ ";\n", dt :: locals)
+          (output ^ (string_of_data_type true dt) ^ " = " ^ default_init dt ^ ";\n", dt :: locals)
       | DeclareAssign(dt, e) -> 
         let name = get_dt_name dt in
         if List.exists (fun dt -> get_dt_name dt = name) locals then
           raise (Failure ("Variable " ^ name ^ " has already been declared."))
         else
           if check_assign locals e dt false then
-            (output ^ string_of_data_type dt ^ " = " ^ (string_of_assignment locals dt e) ^ ";\n", dt :: locals)
+            (output ^ (string_of_data_type true dt) ^ " = " ^ 
+              "(" ^ (string_of_data_type false dt) ^ ")" ^ 
+              (string_of_assignment locals dt e) ^ ";\n", dt :: locals)
           else
             raise (Failure ("Failed check assign on declare assign."))
       | NoStmt -> (output ^ ";", locals)
 
     in "public static " ^
-    (string_of_data_type fdecl.fname) ^ "(" ^ String.concat ", " (List.map string_of_data_type fdecl.formals) ^ ")"
-      ^ fst (string_of_stmt ("", fdecl.formals) (Block fdecl.body)) ^ "\n"
+    (string_of_data_type true fdecl.fname) ^ "(" ^ String.concat ", " (List.map (string_of_data_type true) fdecl.formals) ^ ")"
+      ^ fst (string_of_stmt ("", fdecl.formals) (Block fdecl.body))
   in let func_is_void = function
     Void(s) -> true
     | _ -> false
