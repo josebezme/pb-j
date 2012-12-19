@@ -34,6 +34,7 @@ rule token = parse
 | "<="         { LTE }
 | "&&"         { AND }
 | "||"         { OR }
+| "!=" 		   { NEQ }
 | "spread:"   { SPREAD }
 | "jam:"       { JAM }
 | '@'          { AT }

@@ -88,11 +88,7 @@ public class PBJOp {
 		}
 	}
 
-	public static Object spread(
-			String method, 
-			Object[] args){
-		
-		
+	public static Object spread(String method, Object[] args){
 		Object result = null;
 		synchronized (SlaveHandler.WAIT) {
 			startSpread(method, args);

@@ -109,6 +109,8 @@ public class PBJ {
 					// Done waiting... run that shit.
 					
 					Object[] masterArgs = Arrays.copyOfRange(args, 1, args.length);
+					System.out.println("args: " + Arrays.toString(args));
+					System.out.println("master args: " + Arrays.toString(masterArgs));
 					
 					Map<Object, Object> slaves = new HashMap<Object, Object>();
 					

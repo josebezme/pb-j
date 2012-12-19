@@ -1,4 +1,4 @@
-type op = Add | Sub | Mult | Div | Mod | Seq | Peq | Greater | Geq | Less | Leq | And | Or
+type op = Add | Sub | Mult | Div | Mod | Seq | Peq | Greater | Geq | Less | Leq | Neq | And | Or
 
 type data_type =
   String  of string
@@ -104,6 +104,7 @@ and string_of_expr = function
       | Less -> "LT"
       | Leq -> "LTE"
       | And -> "AND"
+      | Neq -> "NEQ"
       | Or -> "OR") ^ " " ^ string_of_expr e2
   | ArrayGet(id,idx) -> "ARRAY-" ^ id ^ "-GET[" ^ string_of_expr idx ^ "]"
   | ArrayLiteral(al) -> "ARRAY[" ^ String.concat "," 

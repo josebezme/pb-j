@@ -1,24 +1,29 @@
 master(map slaves, array args){ ... Runtime argument.
-	long bigPrime <- args[0]; 
-array searchStarts;
+	long n <- args[0]; 
+	array searchStarts;
 
 ... get the place for each slave to start
-	long iterations <- bigPrime / 3 / |slaves|; ... size of slaves
+	long iterations <- n / |slaves|; ... size of slaves
 	for(long m <- 0; m < |slaves|; m <- m + 1) { 
-		searchStarts[m] <- iterations * m; 
+		searchStarts[m] <- (iterations * m);
 	}
 
 ... spread the starting points to the slaves
-...long result <- spread: factor(@searchStarts, bigPrime, iterations);
-...print("Result: " ~ result);
+	array result <- spread: factor(@searchStarts, n, iterations);
+	print("Result: " ~ result);
 }
 
-long factor(array mylist, long prime, long iterations) {
-	long start <- mylist[0];
-...	for(long i <- start; i < iterations	; i <- i + 1) {
-	...	if(prime % i = 0 ) { ...it is not prime
-...			-> i;
-		...}
-...	}
-	-> null; ...no evidence that it is not prime
+array factor(array starts, long n, long iterations) {
+	long start <- starts[0];
+	array factors;
+	for(long i <- start; i < start + iterations; i <- i + 1) {
+		if( i > 1 && n % i = 0) { ...it is not prime
+			factors[|factors|] <- i;
+		}
+	}
+
+	if(|factors| > 0) {
+		-> factors;
+	} 
+	-> null;
 }

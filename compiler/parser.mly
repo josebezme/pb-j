@@ -11,7 +11,7 @@ let parse_error s = (* Called by the parser function on error *)
 %token NULL
 %token STARSTAR PIPE CONCAT
 %token PLUS MINUS TIMES DIVIDE MOD
-%token SEQUAL PEQUAL GT GTE LT LTE AND OR
+%token SEQUAL PEQUAL GT GTE LT LTE AND OR NEQ
 %token COMMENT
 %token ASSIGN
 %token RETURN
@@ -36,7 +36,7 @@ let parse_error s = (* Called by the parser function on error *)
 %right RETURN
 %right ASSIGN
 %left AND OR
-%left SEQUAL PEQUAL GT GTE LT LTE
+%left SEQUAL PEQUAL GT GTE LT LTE NEQ
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
 
@@ -117,6 +117,7 @@ expr:
   | expr MOD expr { Binop($1, Mod, $3) }
   | expr SEQUAL expr { Binop($1, Seq, $3) }
   | expr PEQUAL expr { Binop($1, Peq, $3) }
+  | expr NEQ expr { Binop($1, Neq, $3) }
   | expr GT expr { Binop($1, Greater, $3) }
   | expr GTE expr { Binop($1, Geq, $3) }
   | expr LT expr { Binop($1, Less, $3) }
@@ -133,6 +134,7 @@ expr:
   | ID LBRACE STARSTAR RBRACE { MapValues($1) }
   | PIPE ID PIPE { Size($2) }
   | expr CONCAT expr { Concat($1, $3) }
+  | LPAREN expr RPAREN { $2 }
 
 vdecl:
   MAP ID { Map($2) }
