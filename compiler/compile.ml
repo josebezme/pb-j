@@ -282,65 +282,35 @@ let translate (globals, functions) =
       | FunctionCall(s,e) -> s ^ "("  ^  String.concat "," (List.map (string_of_expr locals) e) ^ ")" 
       | NoExpr -> ""
       | JamSpread(f, sp)   -> 
-				(* jam: add(@) spread: add(@myList); *)
+				(* jam: jadd(@) spread: add(@myList); *)
         (* create a map from slave to job where job is*)
         (*pass the actuals*)
-        let print_acts title list locals = "Object[] " ^ title ^ " = { "
-            ^ (if List.length list > 0 then "(Object)" else "")
+				(let print_acts list locals = (
+              (if List.length list > 0 then "(Object)" else "")
             ^ (String.concat ", (Object)" (List.map (string_of_expr locals) list))
-            ^ "};\n"
-				and print_col_acts title list locals = "Collection[] " ^ title ^ " = { "
-            ^ (if List.length list > 0 then "(Collection)" else "")
-            ^ (String.concat ", (Collection)" (List.map (string_of_expr locals) list))
-            ^ "};\n"
-
-          in let rec s_a_helper (spread, normal) = function
-             | At(e)    -> (e::spread, normal )
-             | x -> ( spread, x::normal )
-        and split_actuals acts = List.fold_left s_a_helper ( [], [] ) acts 
+            )
+				in let p_r_helper x f locals = (match x with
+             | At(_)    -> "PBJOp.jam( \"" ^ (fst(f)) ^ "\", new Object[]{" 
+						  ^ (print_acts (snd(f)) locals) ^ "})"
+             | l        -> string_of_expr locals l)
+				in let print_acts_returned actlist f locals = (
+             (if List.length actlist > 0 then "(Object)" else "")
+            ^ (String.concat ", (Object)" (List.map (fun x -> (p_r_helper x f locals)) actlist))
+            )
         in (match (f, sp) with
-          (FunctionCall(jid, je), Spread(FunctionCall(fid, fe))) ->
-					   let acts = split_actuals fe in 
-                  (print_acts "normActuals" (snd(acts)) locals)    
-                ^ (print_col_acts "slicedActuals" (fst(acts)) locals)
-								^ (print_acts "jnormActuals" je locals)
-						^ "PBJOp.jamSliceSpread( master, "
-						^ "Thread.currentThread().getStackTrace()[1].getClassName(), \""
-            ^ jid ^ "\", Arrays.asList(jnormActuals), \""
-						^ fid ^ "\", Arrays.asList(normActuals), " 
-						^ "Arrays.asList((Collection<Object>[]) slicedActuals)) "
-						| (_,_) -> raise (Failure("improper Jam Spread 2.")))
-
+				(*Spread(FunctionCall(fid, fe))*)
+          (FunctionCall(jid, jargs), Spread(FunctionCall(fid, fe))) ->
+					  (*Object[] *)
+						jid ^ "( " ^ (print_acts_returned jargs (fid, fe) locals) ^ ")"
+						| (_,_) -> raise (Failure("improper Jam Spread 2."))))
       | Spread(f)          -> 
-        let print_acts title list locals = "Object[] " ^ title ^ " = { "
-            ^ (if List.length list > 0 then "(Object)" else "")
-            ^ (String.concat ", (Object)" (List.map (string_of_expr locals) list))
-            ^ "};\n"
-                and print_col_acts title list locals = "Collection[] " ^ title ^ " = { "
-            ^ (if List.length list > 0 then "(Collection)" else "")
-            ^ (String.concat ", (Collection)" (List.map (string_of_expr locals) list))
-            ^ "};\n"          
-						in let rec s_a_helper (spread, normal) = function
-             | At(e)    -> (e::spread, normal )
-             | x -> ( spread, x::normal )
-        and split_actuals acts = List.fold_left s_a_helper ( [], [] ) acts 
-        in 
-	            (* requires function slice which returns a map from each slave to the*)
-	            (* part of the slice they get*)
-	            (* right now all spread vars need to be at the end *)
-	            (*sliceSpread( Master master, String className, String method, List< Object > inNormal, List< Object > inSliced)*)
-	        (match f with
-	          FunctionCall(id, e) -> 
-	                let acts = split_actuals e in 
-											  (print_acts "normActuals" (snd(acts)) locals)    
-	                  ^ (print_col_acts "slicedActuals" (fst(acts)) locals)
-	                  ^ "PBJOp.sliceSpread( master, " 
-										^ "Thread.currentThread().getStackTrace()[1].getClassName(), \"" 
-	                  ^ id 
-										^ "\", Arrays.asList(normActuals), "
-										^ "Arrays.asList((Collection<Object>[]) slicedActuals)) "
-	         | _ -> raise (Failure ("Spread on non-function.")))
-(*		 | _ -> raise (Failure ("not done yet")) *)
+				(let print_acts list locals = (
+              (if List.length list > 0 then "(Object)" else "")
+            ^ (String.concat ", (Object)" (List.map (string_of_expr locals) list)))
+        in (match f with
+          FunctionCall(id, args) ->
+                        "PBJOp.spread(" ^ id ^ ", new Object[]{ " ^ (print_acts args locals) ^ "})"
+          | _ -> raise (Failure("Spread on non-function."))))
     and string_of_expr locals = function
       StmtExpr(e) -> string_of_stmt_expr locals e
       | Literal(l) -> string_of_literal l
@@ -426,7 +396,7 @@ let translate (globals, functions) =
       | Concat(e1, e2) ->
         (* Start it off with an empty string so java knows to concat any numeric values vs addition. *)
         "(\"\" + " ^ string_of_expr locals e1 ^ " + " ^ string_of_expr locals e2 ^ ")" 
-			| At(e)               ->  string_of_expr locals e
+			| At(e)               ->  "new Spreadable((Object) " ^ string_of_expr locals e ^ ")"
       | Id(s) -> 
         (* Ensures that the used id is within the current scope *)
         if(List.exists (fun dt -> get_dt_name dt = s) locals) then
