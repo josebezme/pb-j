@@ -108,6 +108,10 @@ let translate (globals, functions) =
       ) else 
         raise(Failure("Function " ^ id ^ " does not exist."))
 
+    in let is_null = function 
+      Null -> true
+      | _ -> false
+
     (* Checks for invalid assignments of data types *)
     in let check_assign locals e dt no_raise =
       let rec match_string_dt = function
@@ -360,7 +364,8 @@ let translate (globals, functions) =
     	      (check_assign locals e1 dt_str true && check_assign locals e2 dt_str true) ||
     	      (check_assign locals e1 dt_bool true && check_assign locals e2 dt_bool true) ||
     	      (check_assign locals e1 dt_array true && check_assign locals e2 dt_array true) ||
-    	      (check_assign locals e1 dt_map true && check_assign locals e2 dt_map true)
+    	      (check_assign locals e1 dt_map true && check_assign locals e2 dt_map true) ||
+            (is_null e1) || (is_null e2)
                 (* Expressions must be long or double for arith and comp ops *)
     	    else 
     	      (check_assign locals e1 dt_long true || check_assign locals e1 dt_doub true) 
@@ -388,8 +393,7 @@ let translate (globals, functions) =
           )
     	  else 
     	    if (o = And || o = Or) then raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be type Boolean"))
-    	    else if string_of_expr locals e1 != "null" || string_of_expr locals e2 != "null" then "(" ^ string_of_expr locals e1 ^ op_string ^ string_of_expr locals e2 ^ ")"
-						else if o = Peq then raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be the same type"))
+    	    else if o = Peq then raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be the same type"))
     	    else raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be type Long or Double"))
       | MapLiteral(ml) -> into_map ("new Object[]{" ^
           String.concat "," (List.map (fun (d,e) -> string_of_literal d ^ "," ^ string_of_expr locals e) ml) ^ 
@@ -445,11 +449,6 @@ let translate (globals, functions) =
         )
       else
         raise (Failure ("Failed check assign."))
-
-    in let is_null = function 
-      Null -> true
-      | _ -> false
-
     
     in let check_valid_for_stmt = function
      ExprAsStmt(stmt_of_expr) -> true
