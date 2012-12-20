@@ -172,6 +172,7 @@ let translate (globals, functions) =
           | Concat(e1, e2) -> true
           | MapGet(id, key) -> true
           | ArrayGet(id, idx) -> true 
+          | Null -> true
           | StmtExpr(e) -> match_data_type match_string_dt check_assign_helper dt e 
           | _ ->  if no_raise then false else raise (Failure ("Assigned string to invalid expression."))
           )
@@ -387,7 +388,8 @@ let translate (globals, functions) =
           )
     	  else 
     	    if (o = And || o = Or) then raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be type Boolean"))
-    	    else if o = Peq then raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be the same type"))
+    	    else if string_of_expr locals e1 != "null" || string_of_expr locals e2 != "null" then "(" ^ string_of_expr locals e1 ^ op_string ^ string_of_expr locals e2 ^ ")"
+						else if o = Peq then raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be the same type"))
     	    else raise (Failure ("Invalid Type for operation " ^ op_string ^ ": Both expressions must be type Long or Double"))
       | MapLiteral(ml) -> into_map ("new Object[]{" ^
           String.concat "," (List.map (fun (d,e) -> string_of_literal d ^ "," ^ string_of_expr locals e) ml) ^ 
@@ -494,7 +496,7 @@ let translate (globals, functions) =
             , locals )
       | Return(e) -> 
         if (check_assign locals e fdecl.fname true || is_null e) then
-        (output ^ "return " ^ string_of_expr locals e ^ ";\n", locals)
+        ( output ^ "return " ^ "("^ string_of_data_type false fdecl.fname ^ ")" ^ string_of_expr locals e ^ ";\n", locals)
         else
           raise (Failure ("Invalid return expression for function: " ^ (get_dt_name fdecl.fname)))
       | ExprAsStmt(e) -> (output ^ string_of_stmt_expr locals e ^ ";\n", locals)

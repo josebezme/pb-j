@@ -1,0 +1,23 @@
+master(map slaves, array args){
+	map tree <- {"start": ["b", "c", "d"], "b": ["e", "f", "g"], "f": ["h", "i", "j"], "i": ["l", "m", "goal"]};
+	print(spread: search(@tree{"start"}, tree ));
+}
+
+string search(array a, map tree){
+	string out <- null;
+	array currentNodesArray <- tree{a[0]};
+	if ( currentNodesArray === null ){ 
+		-> null;
+	}
+	for (long i <- 0; i < |currentNodesArray|; i <- i + 1){
+			if( currentNodesArray[i]  = "goal"){
+				->  a[0]; 
+			} else{ 
+				string t  <- search( [currentNodesArray[i]], tree );
+				boolean b <- (t === null);
+				...out <- out ~ t;
+				if(b === false) -> out;
+			}
+	}
+	-> null;
+}
